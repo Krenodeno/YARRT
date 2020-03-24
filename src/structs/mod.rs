@@ -1,3 +1,5 @@
 pub mod color;
-pub mod ray;
-pub mod vec3;
+mod ray;
+pub use ray::*;
+mod vec3;
+pub use vec3::*;

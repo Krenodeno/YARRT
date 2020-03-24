@@ -9,7 +9,7 @@ use std::ops::DivAssign;
 use std::ops::MulAssign;
 use std::ops::SubAssign;
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 pub struct Vec3 {
     pub x: f64,
     pub y: f64,
@@ -110,6 +110,18 @@ impl Div<f64> for &Vec3 {
     }
 }
 
+impl Div<f64> for Vec3 {
+    type Output = Vec3;
+
+    fn div(self, other: f64) -> Self::Output {
+        Self::Output {
+            x: self.x / other,
+            y: self.y / other,
+            z: self.z / other,
+        }
+    }
+}
+
 // v1 * v2
 impl Mul for &Vec3 {
     type Output = Vec3;
@@ -198,6 +210,18 @@ impl Neg for &Vec3 {
 
 // v1 - v2
 impl Sub for &Vec3 {
+    type Output = Vec3;
+
+    fn sub(self, other: Self) -> Self::Output {
+        Self::Output {
+            x: self.x - other.x,
+            y: self.y - other.y,
+            z: self.z - other.z,
+        }
+    }
+}
+
+impl Sub for Vec3 {
     type Output = Vec3;
 
     fn sub(self, other: Self) -> Self::Output {
