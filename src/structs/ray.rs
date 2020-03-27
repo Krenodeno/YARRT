@@ -7,7 +7,7 @@ pub struct Ray {
 }
 
 impl Ray {
-	pub fn from(origin: &Vec3, direction: &Vec3) -> Ray {
+	pub fn from(origin: Vec3, direction: Vec3) -> Ray {
 		Ray {
 			orig: Vec3{x:origin.x, y:origin.y, z:origin.z},
 			dir: Vec3{x:direction.x, y:direction.y, z:direction.z},
