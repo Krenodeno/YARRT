@@ -8,11 +8,22 @@ use camera::Camera;
 
 use rand::Rng;
 
+fn random_in_unit_sphere() -> Vec3 {
+    let mut rng = rand::thread_rng();
+    loop {
+        let p: Vec3 = 2.0 * Vec3{x: rng.gen::<f64>(), y: rng.gen::<f64>(), z: rng.gen::<f64>()} - Vec3 {x:1.0, y:1.0, z:1.0};
+        if p.squared_lentgth() >= 1.0 {
+            return p;
+        }
+    }
+}
+
 fn color(ray: &Ray, world: &dyn Hitable) -> Vec3 {
-    let record = world.hit(&ray, 0.0, std::f64::MAX);
+    let record = world.hit(&ray, 0.001, std::f64::MAX);
     match record {
-        Some(r) => {
-            return 0.5 * Vec3{x: &r.normal.x+1.0, y: &r.normal.y+1.0, z: &r.normal.z+1.0};
+        Some(rec) => {
+            let target: Vec3 = rec.p + rec.normal + random_in_unit_sphere();
+            return 0.5 * color(&Ray::from(rec.p, target - rec.p), world);
         },
         None => {
             // sky color
@@ -20,6 +31,14 @@ fn color(ray: &Ray, world: &dyn Hitable) -> Vec3 {
             let t: f64 = 0.5 * (unit_direction.y + 1.0);
             return (1.0 - t) * Vec3{x: 1.0, y:1.0, z: 1.0} + t * Vec3{x:0.5, y:0.7, z:1.0};
         }
+    }
+}
+
+fn gamma(color: Vec3) -> Vec3 {
+    Vec3{
+        x: color.x.sqrt(),
+        y: color.y.sqrt(),
+        z: color.z.sqrt(),
     }
 }
 
@@ -53,6 +72,7 @@ fn main() {
             }
 
             col /= ns as f64;
+            let col = gamma(col);
 
             let ir = (255.99 * col.x) as u8;
             let ig = (255.99 * col.y) as u8;
