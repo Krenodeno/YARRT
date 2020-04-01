@@ -11,13 +11,14 @@ pub struct Sphere {
 impl Hitable for Sphere {
     fn hit(&self, ray: &Ray, t_min: f64, t_max: f64) -> Option<HitRecord> {
         let oc = ray.origin() - self.center;
-        let a = dot(ray.direction(), ray.direction());
-        let b = dot(oc, ray.direction());
-        let c = dot(oc, oc) - self.radius * self.radius;
-        let discriminant = b * b - a * c;
+        let a = ray.direction().squared_lentgth();
+        let half_b = dot(oc, ray.direction());
+        let c = oc.squared_lentgth() - self.radius * self.radius;
+        let discriminant = half_b * half_b - a * c;
 
         if discriminant > 0.0 {
-            let temp = (-b - (b*b-a*c).sqrt()) / a;
+            let root = discriminant.sqrt();
+            let temp = (-half_b - root) / a;
             if temp < t_max && temp > t_min {
                 let p = ray.point_at(temp);
                 let rec = HitRecord {
@@ -28,7 +29,7 @@ impl Hitable for Sphere {
                 };
                 return Some(rec);
             }
-            let temp = (-b + (b*b-a*c).sqrt()) / a;
+            let temp = (-half_b + root) / a;
             if temp < t_max && temp > t_min {
                 let p = ray.point_at(temp);
                 let rec = HitRecord {
