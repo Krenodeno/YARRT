@@ -1,59 +1,60 @@
 use super::Material;
-use super::random_in_unit_sphere;
+use super::{random_in_unit_sphere, reflect};
 use crate::structs::{dot, Ray, unit_vector, Vec3};
 use crate::hitables::HitRecord;
 
+use rand::Rng;
+
 #[derive(Debug, Copy, Clone)]
 pub struct Dielectric{
-	pub ref_idx: f64,
+    pub ref_idx: f64,
 }
 
-fn refract(v: &Vec3, n: &Vec3, ni_over_nt: f64) -> Option<Vec3> {
-	let uv = unit_vector(*v);
-	let dt = dot(uv, *n);
-	let discriminant = 1.0 - ni_over_nt*ni_over_nt * (1.0 - dt*dt);
-	if (discriminant > 0.0) {
-		return Some(ni_over_nt * (uv - n*dt) - n * discriminant.sqrt());
-	}
-	else {
-		return None;
-	}
+fn refract(uv: &Vec3, n: &Vec3, etai_over_etat: f64) -> Vec3 {
+    let cos_theta = dot(-uv, *n);
+    let r_out_parallel = etai_over_etat * (uv + cos_theta * n);
+    let r_out_perp = -(1.0 - r_out_parallel.squared_length()).sqrt() * n;
+    r_out_parallel + r_out_perp
 }
 
-fn reflect(v: Vec3, n: Vec3) -> Vec3 {
-	v - 2.0 * dot(v, n) * n
+/// Simple polynomial approximation by Christophe Schlick
+fn schlick(cosine: f64, ref_idx: f64) -> f64 {
+    let r0 = (1.0 - ref_idx) / (1.0 + ref_idx);
+    let r0 = r0 * r0;
+    return r0 + (1.0 - r0) * (1.0 - cosine).powi(5);
 }
 
 impl Material for Dielectric {
-	fn scatter(&self, ray: &Ray, rec: &HitRecord, attenuation: &mut Vec3, scattered: &mut Ray) -> bool {
-		*attenuation = Vec3{x:1.0, y: 1.0, z:1.0};
-		let mut outward_normal: Vec3 = Vec3{x:1.0, y:0.0, z:0.0};
-		let mut ni_over_nt = 0.0;
-		let reflected = reflect(ray.direction(), rec.normal);
-		if dot(ray.direction(), rec.normal) > 0.0 {
-			let refracted = refract(&ray.direction(), &(-rec.normal), self.ref_idx);
-			match refracted {
-				Some(r) => {
-					*scattered = Ray::from(rec.p, r);
-				},
-				None => {
-					*scattered = Ray::from(rec.p, reflected);
-					return false;
-				}
-			}
-		}
-		else {
-			let refracted = refract(&ray.direction(), &rec.normal, 1.0 / self.ref_idx);
-			match refracted {
-				Some(r) => {
-					*scattered = Ray::from(rec.p, r);
-				},
-				None => {
-					*scattered = Ray::from(rec.p, reflected);
-					return false;
-				}
-			}
-		}
-		return true;
-	}
+    fn scatter(&self, ray: &Ray, rec: &HitRecord) -> Option<(Vec3, Ray)> {
+        let attenuation = Vec3::new(1.0, 1.0, 1.0);
+        
+        let mut etai_over_etat = self.ref_idx;
+        if rec.front_face {
+            etai_over_etat = 1.0 / self.ref_idx;
+        }
+        let etai_over_etat = etai_over_etat;	// not mutable anymore
+
+        let unit_direction = unit_vector(ray.direction());
+
+        let cos_theta = dot(-unit_direction, rec.normal).min(1.0);
+        let sin_theta = (1.0 - cos_theta * cos_theta).sqrt();
+
+        if etai_over_etat * sin_theta > 1.0 {
+            // Must reflect
+            let reflected = reflect(&ray.direction(), &rec.normal);
+            let scattered = Ray::from(rec.p, reflected);
+            return Some((attenuation, scattered));
+        }
+        // Can refract
+        let reflect_prob = schlick(cos_theta, etai_over_etat);
+        if rand::thread_rng().gen::<f64>() < reflect_prob {
+            let reflected = reflect(&unit_direction, &rec.normal);
+            let scattered = Ray::from(rec.p, reflected);
+            return Some((attenuation, scattered));
+        }
+
+        let refracted = refract(&unit_direction, &rec.normal, etai_over_etat);
+        let scattered = Ray::from(rec.p, refracted);
+        return Some((attenuation, scattered));
+    }
 }

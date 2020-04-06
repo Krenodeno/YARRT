@@ -8,15 +8,45 @@ mod dielectric;
 pub use dielectric::Dielectric;
 
 use rand::Rng;
+use std::f64::consts::PI;
 
-use crate::structs::Vec3;
+use crate::structs::{Vec3, dot};
+
+// Common material functions
+
+fn reflect(v: &Vec3, n: &Vec3) -> Vec3 {
+	*v - 2.0 * dot(*v, *n) * n
+}
+
+// Distributions
+
+/// Distribution for Lambertian Approximation
+pub fn random_unit_vector() -> Vec3 {
+    let mut rng = rand::thread_rng();
+    let a: f64 = rng.gen_range(0.0, 2.0 * PI);
+    let z: f64 = rng.gen_range(-1.0, 1.0);
+    let r = (1.0 - z * z).sqrt();
+    Vec3::new(r * a.cos(), r * a.sin(), z)
+}
+
+/// More intuitive distribution
+pub fn random_in_hemisphere(normal: Vec3) -> Vec3 {
+    let in_unit_sphere = random_in_unit_sphere();
+    if dot(in_unit_sphere, normal) > 0.0 {
+        return in_unit_sphere;
+    }
+    else {
+        return -in_unit_sphere;
+    }
+}
 
 pub fn random_in_unit_sphere() -> Vec3 {
     let mut rng = rand::thread_rng();
     loop {
-        let p: Vec3 = 2.0 * Vec3{x: rng.gen::<f64>(), y: rng.gen::<f64>(), z: rng.gen::<f64>()} - Vec3 {x:1.0, y:1.0, z:1.0};
-        if p.squared_lentgth() >= 1.0 {
-            return p;
+        let p: Vec3 = Vec3::new(rng.gen_range(-1.0, 1.0), rng.gen_range(-1.0, 1.0), rng.gen_range(-1.0, 1.0));
+        if p.squared_length() >= 1.0 {
+            continue;
         }
+        return p;
     }
 }

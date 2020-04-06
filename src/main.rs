@@ -11,24 +11,27 @@ use materials::*;
 use rand::Rng;
 use std::sync::Arc;
 
+/// Compute the color of the current ray
+/// in the world of hitables.
+/// This function run recursively until maximum number of recursions
+/// (depth parameter) is reached or no hitable is hit.
 fn color(ray: &Ray, world: &dyn Hitable, depth: u32) -> Vec3 {
     let record = world.hit(&ray, 0.001, std::f64::MAX);
     match record {
         Some(rec) => {
-            let mut scattered: Ray = Ray::from(Vec3{x:0.0,y:0.0,z:0.0}, Vec3{x:1.0,y:0.0,z:0.0});
-            let mut attenuation: Vec3 = Vec3{x:1.0,y:1.0,z:1.0};
-            if depth < 50 && rec.material.scatter(&ray, &rec, &mut attenuation, &mut scattered) {
-                return attenuation * color(&scattered, world, depth+1);
+            let res = rec.material.scatter(&ray, &rec);
+            if let Some((attenuation, scattered)) = res {
+                if depth != 0 {
+                    return attenuation * color(&scattered, world, depth-1);
+                }
             }
-            else {
-                return Vec3{x:0.0, y:0.0, z:0.0};
-            }
+            return Vec3::new(0.0, 0.0, 0.0);
         },
         None => {
             // sky color
             let unit_direction = unit_vector(ray.direction());
             let t: f64 = 0.5 * (unit_direction.y + 1.0);
-            return (1.0 - t) * Vec3{x: 1.0, y:1.0, z: 1.0} + t * Vec3{x:0.5, y:0.7, z:1.0};
+            return (1.0 - t) * Vec3::new(1.0, 1.0, 1.0) + t * Vec3::new(0.5, 0.7, 1.0);
         }
     }
 }
@@ -42,12 +45,13 @@ fn gamma(color: Vec3) -> Vec3 {
 }
 
 fn main() {
-    let nx: u16 = 200;
-    let ny: u16 = 100;
-    let ns: u16 = 100;
+    let image_width: u16 = 200;
+    let image_height: u16 = 100;
+    let sample_per_pixel: u16 = 100;
+    let max_depth: u32 = 50;
 
     println!("P3");
-    println!("{} {}", nx, ny);
+    println!("{} {}", image_width, image_height);
     println!("255");
 
     let cam = Camera::default();
@@ -56,46 +60,51 @@ fn main() {
     // Create spheres and add them to the list
     let mut spheres = HitableList::new();
     spheres.push(Box::new(Sphere {
-        center: Vec3 {x:0.0, y:0.0, z:-1.0},
+        center: Vec3::new(0.0, 0.0, -1.0),
         radius: 0.5,
-        material: Arc::new(Lambertian{albedo: Vec3{x:0.1, y:0.2, z:0.5}})
+        material: Arc::new(Lambertian{albedo: Vec3::new(0.1, 0.2, 0.5)})
     }));
     spheres.push(Box::new(Sphere {
-        center: Vec3 {x:0.0, y:-100.5, z:-1.0},
+        center: Vec3::new(0.0, -100.5, -1.0),
         radius: 100.0,
-        material: Arc::new(Lambertian{albedo: Vec3{x:0.8, y:0.8, z:0.0}})
+        material: Arc::new(Lambertian{albedo: Vec3::new(0.8, 0.8, 0.0)})
     }));
     spheres.push(Box::new(Sphere {
-        center: Vec3 {x:1.0, y:0.0, z:-1.0},
+        center: Vec3::new(1.0, 0.0, -1.0),
         radius: 0.5,
-        material: Arc::new(Metal::new(Vec3{x:0.8, y:0.6, z:0.2}, 0.0))
+        material: Arc::new(Metal::new(Vec3::new(0.8, 0.6, 0.2), 0.0))
     }));
     spheres.push(Box::new(Sphere {
-        center: Vec3 {x:-1.0, y:0.0, z:-1.0},
+        center: Vec3::new(-1.0, 0.0, -1.0),
         radius: 0.5,
         material: Arc::new(Dielectric{ref_idx: 1.5})
     }));
+    spheres.push(Box::new(Sphere {
+        center: Vec3::new(-1.0, 0.0, -1.0),
+        radius: -0.45,
+        material: Arc::new(Dielectric{ref_idx: 1.5})
+    }));    // Hollow glass sphere (soap bubble)
 
-    for j in (0..ny).rev() {
-        for i in 0..nx {
-            let mut col = Vec3{x:0.0, y:0.0, z:0.0};
-            for s in 0..ns {
-                let u = (i as f64 + rng.gen::<f64>()) / nx as f64;
-                let v = (j as f64 + rng.gen::<f64>()) / ny as f64;
+    // Image calculation
+    for j in (0..image_height).rev() {
+        eprint!("Scanlines remaining: {}\r", j);
+        for i in 0..image_width {
+            let mut col = Vec3::new(0.0, 0.0, 0.0);
+            for _s in 0..sample_per_pixel {
+                let u = (i as f64 + rng.gen::<f64>()) / image_width as f64;
+                let v = (j as f64 + rng.gen::<f64>()) / image_height as f64;
                 let r = cam.get_ray(u, v);
 
                 let _p = r.point_at(2.0);
-                col += color(&r, &spheres, 0);
+                col += color(&r, &spheres, max_depth);
             }
 
-            col /= ns as f64;
+            col /= sample_per_pixel as f64;
             let col = gamma(col);
 
-            let ir = (255.99 * col.x) as u8;
-            let ig = (255.99 * col.y) as u8;
-            let ib = (255.99 * col.z) as u8;
-
-            println!("{} {} {}", ir, ig, ib);
+            println!("{}", col);
         }
     }
+
+    eprintln!("Done!                    ");
 }
