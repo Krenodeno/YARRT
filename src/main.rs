@@ -54,8 +54,8 @@ fn main() {
     println!("{} {}", image_width, image_height);
     println!("255");
 
-    let cam = Camera::default();
-    let mut rng = rand::thread_rng();
+    let aspect_ratio = image_width as f64 / image_height as f64;
+    let cam = Camera::new_look_at(Vec3::new(-2.0, 2.0, 1.0), Vec3::new(0.0, 0.0, -1.9), Vec3::new(0.0, 1.0, 0.0), 50.0, aspect_ratio);
 
     // Create spheres and add them to the list
     let mut spheres = HitableList::new();
@@ -84,6 +84,8 @@ fn main() {
         radius: -0.45,
         material: Arc::new(Dielectric{ref_idx: 1.5})
     }));    // Hollow glass sphere (soap bubble)
+
+    let mut rng = rand::thread_rng();
 
     // Image calculation
     for j in (0..image_height).rev() {
