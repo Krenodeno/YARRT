@@ -9,6 +9,8 @@ use std::ops::DivAssign;
 use std::ops::MulAssign;
 use std::ops::SubAssign;
 
+use std::fmt;
+
 #[derive(Debug, Copy, Clone)]
 pub struct Vec3 {
     pub x: f64,
@@ -16,12 +18,29 @@ pub struct Vec3 {
     pub z: f64,
 }
 
+impl fmt::Display for Vec3 {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{} {} {}", (255.99 * self.x) as u8, (255.99 * self.y) as u8, (255.99 * self.z) as u8)
+    }
+}
+
 impl Vec3 {
+    pub fn new(x: f64, y: f64, z: f64) -> Vec3 {
+        Vec3 {
+            x: x,
+            y: y,
+            z: z,
+        }
+    }
+
+    /// Return the length of the vector
     pub fn length(&self) -> f64 {
         (self.x * self.x + self.y * self.y + self.z * self.z).sqrt()
     }
 
-    pub fn squared_lentgth(&self) -> f64 {
+    /// Return the squared length of the vector.
+    /// Has the adventage to not compute any square root.
+    pub fn squared_length(&self) -> f64 {
         self.x * self.x + self.y * self.y + self.z * self.z
     }
 

@@ -1,4 +1,4 @@
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 pub struct Color {
 	pub r: f64,
 	pub g: f64,
@@ -6,7 +6,15 @@ pub struct Color {
 }
 
 impl Color {
-	fn BLACK() -> Color {
+	fn new(r: f64, g: f64, b:f64) -> Color {
+		Color {
+			r: r,
+			g: g,
+			b: b,
+		}
+	}
+
+	fn black() -> Color {
 		Color {
 			r: 0.0,
 			g: 0.0,
@@ -14,7 +22,7 @@ impl Color {
 		}
 	}
 
-	fn WHITE() -> Color {
+	fn white() -> Color {
 		Color {
 			r: 1.0,
 			g: 1.0,
