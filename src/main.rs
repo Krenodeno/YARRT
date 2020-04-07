@@ -10,6 +10,8 @@ use materials::*;
 
 use rand::Rng;
 use std::sync::Arc;
+use std::time::{Duration, Instant};
+
 
 /// Compute the color of the current ray
 /// in the world of hitables.
@@ -92,6 +94,8 @@ fn main() {
 
     let mut rng = rand::thread_rng();
 
+    let before = Instant::now();
+
     // Image calculation
     for j in (0..image_height).rev() {
         eprint!("Scanlines remaining: {}\r", j);
@@ -113,5 +117,5 @@ fn main() {
         }
     }
 
-    eprintln!("Done!                    ");
+    eprintln!("Done in {}secs!           ", before.elapsed().as_secs());
 }
