@@ -13,7 +13,7 @@ impl Metal {
     pub fn new(albedo: Vec3, fuzz: f64) -> Metal {
         Metal {
             albedo: albedo,
-            fuzziness: fuzz.max(1.0),
+            fuzziness: fuzz.max(0.0).min(1.0),
         }
     }
 }
