@@ -1,11 +1,11 @@
 mod structs;
 mod hitables;
-mod camera;
+mod cameras;
 mod materials;
 
 use structs::*;
 use hitables::*;
-use camera::Camera;
+use cameras::*;
 use materials::*;
 
 use rand::Rng;
@@ -55,7 +55,12 @@ fn main() {
     println!("255");
 
     let aspect_ratio = image_width as f64 / image_height as f64;
-    let cam = Camera::new_look_at(Vec3::new(-2.0, 2.0, 1.0), Vec3::new(0.0, 0.0, -1.9), Vec3::new(0.0, 1.0, 0.0), 50.0, aspect_ratio);
+    let lookfrom = Vec3::new(13.0, 2.0, 3.0);
+    let lookat = Vec3::new(0.0, 0.0, 0.0);
+    let up = Vec3::new(0.0, 1.0, 0.0);
+    let dist_to_focus = 10.0;
+    let aperture = 0.1;
+    let cam = ThinLensCamera::new_look_at(lookfrom, lookat, up, 20.0, aspect_ratio, aperture, dist_to_focus);
 
     // Create spheres and add them to the list
     let mut spheres = HitableList::new();

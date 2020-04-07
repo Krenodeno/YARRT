@@ -1,14 +1,15 @@
 use crate::structs::{Ray, Vec3, unit_vector, cross};
+use super::Camera;
 
-pub struct Camera {
-    origin: Vec3,
+pub struct PinholeCamera {
+    pub origin: Vec3,
     lower_left_corner: Vec3,
     horizontal: Vec3,
     vertical: Vec3,
 }
 
-impl Camera {
-    pub fn new_look_at(lookfrom: Vec3, lookat: Vec3, up: Vec3, vfov: f64, aspect: f64) -> Camera {
+impl PinholeCamera {
+    pub fn new_look_at(lookfrom: Vec3, lookat: Vec3, up: Vec3, vfov: f64, aspect: f64) -> PinholeCamera {
         let theta = vfov.to_radians();
         let half_height = (theta / 2.0).tan();
         let half_width = aspect * half_height;
@@ -17,7 +18,7 @@ impl Camera {
         let u = unit_vector(cross(up, w));
         let v = cross(w, u);
 
-        Camera {
+        PinholeCamera {
             origin: lookfrom,
             lower_left_corner: lookfrom - half_width*u - half_height*v - w,
             horizontal: 2.0 * half_width * u,
@@ -25,12 +26,12 @@ impl Camera {
         }
     }
 
-    pub fn new(vfov: f64, aspect: f64) -> Camera {
+    pub fn new(vfov: f64, aspect: f64) -> PinholeCamera {
         let theta = vfov.to_radians();
         let half_height = (theta / 2.0).tan();
         let half_width = aspect * half_height;
 
-        Camera {
+        PinholeCamera {
             origin: Vec3::new(0.0, 0.0, 0.0),
             lower_left_corner: Vec3::new(-half_width, -half_height, -1.0),
             horizontal: Vec3::new(2.0 * half_width, 0.0, 0.0),
@@ -38,16 +39,18 @@ impl Camera {
         }
     }
 
-    pub fn default() -> Camera {
-        Camera {
+    pub fn default() -> PinholeCamera {
+        PinholeCamera {
             origin: Vec3::new(0.0, 0.0, 0.0),
             lower_left_corner: Vec3::new(-2.0, -1.0, -1.0),
             horizontal: Vec3::new(4.0, 0.0, 0.0),
             vertical: Vec3::new(0.0, 2.0, 0.0),
         }
     }
+}
 
-    pub fn get_ray(&self, u: f64, v: f64) -> Ray {
+impl Camera for PinholeCamera {
+    fn get_ray(&self, u: f64, v: f64) -> Ray {
         Ray::from(self.origin, self.lower_left_corner + u*self.horizontal + v*self.vertical - self.origin)
     }
 }
