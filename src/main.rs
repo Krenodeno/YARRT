@@ -98,7 +98,7 @@ fn main() {
 
     // Image calculation
     for j in (0..image_height).rev() {
-        eprint!("Scanlines remaining: {}\r", j);
+        eprint!("                         \rScanlines remaining: {}\r", j);
         for i in 0..image_width {
             let mut col = Vec3::new(0.0, 0.0, 0.0);
             for _s in 0..sample_per_pixel {
