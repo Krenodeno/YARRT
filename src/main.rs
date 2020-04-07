@@ -12,6 +12,71 @@ use rand::Rng;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
+fn random_scene() -> HitableList {
+    let mut world = HitableList::new();
+
+    world.push(Box::new(Sphere{
+        center: Vec3::new(0.0, -1000.0, 0.0),
+        radius: 1000.0,
+        material: Arc::new(Lambertian{albedo: Vec3::new(0.5, 0.5, 0.5)}),
+    }));
+
+    for a in -11..11 {
+        for b in -11..11 {
+            let choose_mat = rand::thread_rng().gen::<f64>();
+            let center = Vec3::new(a as f64 + 0.9 * rand::thread_rng().gen::<f64>(), 0.2, b as f64 + 0.9 * rand::thread_rng().gen::<f64>());
+            if (center - Vec3::new(4.0, 0.2, 0.0)).length() > 0.9 {
+                if choose_mat < 0.8 {
+                    // Diffuse
+                    let albedo = Vec3::random() * Vec3::random();
+                    world.push(Box::new(Sphere{
+                        center: center,
+                        radius: 0.2,
+                        material: Arc::new(Lambertian{albedo}),
+                    }));
+                }
+                else if choose_mat < 0.95 {
+                    // Metal
+                    let albedo = Vec3::random_range(0.5, 1.0);
+                    let fuzz = rand::thread_rng().gen_range(0.0, 0.5);
+                    world.push(Box::new(Sphere{
+                        center: center,
+                        radius: 0.2,
+                        material: Arc::new(Metal::new(albedo, fuzz)),
+                    }));
+                }
+                else {
+                    // Glass
+                    world.push(Box::new(Sphere{
+                        center: center,
+                        radius: 0.2,
+                        material: Arc::new(Dielectric{ref_idx: 1.5}),
+                    }));
+                }
+            }
+        }
+    }
+
+    world.push(Box::new(Sphere{
+        center: Vec3::new(0.0, 1.0, 0.0),
+        radius: 1.0,
+        material: Arc::new(Dielectric{ref_idx: 1.5}),
+    }));
+
+    world.push(Box::new(Sphere{
+        center: Vec3::new(-4.0, 1.0, 0.0),
+        radius: 1.0,
+        material: Arc::new(Lambertian{albedo: Vec3::new(0.4, 0.2, 0.1)}),
+    }));
+
+    world.push(Box::new(Sphere{
+        center: Vec3::new(4.0, 1.0, 0.0),
+        radius: 1.0,
+        material: Arc::new(Metal::new(Vec3::new(0.7, 0.6, 0.5), 0.0)),
+    }));
+
+    return world;
+}
 
 /// Compute the color of the current ray
 /// in the world of hitables.
@@ -65,32 +130,7 @@ fn main() {
     let cam = ThinLensCamera::new_look_at(lookfrom, lookat, up, 20.0, aspect_ratio, aperture, dist_to_focus);
 
     // Create spheres and add them to the list
-    let mut spheres = HitableList::new();
-    spheres.push(Box::new(Sphere {
-        center: Vec3::new(0.0, 0.0, -1.0),
-        radius: 0.5,
-        material: Arc::new(Lambertian{albedo: Vec3::new(0.1, 0.2, 0.5)})
-    }));
-    spheres.push(Box::new(Sphere {
-        center: Vec3::new(0.0, -100.5, -1.0),
-        radius: 100.0,
-        material: Arc::new(Lambertian{albedo: Vec3::new(0.8, 0.8, 0.0)})
-    }));
-    spheres.push(Box::new(Sphere {
-        center: Vec3::new(1.0, 0.0, -1.0),
-        radius: 0.5,
-        material: Arc::new(Metal::new(Vec3::new(0.8, 0.6, 0.2), 0.0))
-    }));
-    spheres.push(Box::new(Sphere {
-        center: Vec3::new(-1.0, 0.0, -1.0),
-        radius: 0.5,
-        material: Arc::new(Dielectric{ref_idx: 1.5})
-    }));
-    spheres.push(Box::new(Sphere {
-        center: Vec3::new(-1.0, 0.0, -1.0),
-        radius: -0.45,
-        material: Arc::new(Dielectric{ref_idx: 1.5})
-    }));    // Hollow glass sphere (soap bubble)
+    let world = random_scene();
 
     let mut rng = rand::thread_rng();
 
@@ -107,7 +147,7 @@ fn main() {
                 let r = cam.get_ray(u, v);
 
                 let _p = r.point_at(2.0);
-                col += color(&r, &spheres, max_depth);
+                col += color(&r, &world, max_depth);
             }
 
             col /= sample_per_pixel as f64;
