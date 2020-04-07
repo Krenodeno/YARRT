@@ -10,6 +10,7 @@ use std::ops::MulAssign;
 use std::ops::SubAssign;
 
 use std::fmt;
+use rand::Rng;
 
 #[derive(Debug, Copy, Clone)]
 pub struct Vec3 {
@@ -30,6 +31,22 @@ impl Vec3 {
             x: x,
             y: y,
             z: z,
+        }
+    }
+
+    pub fn random() -> Vec3 {
+        Vec3 {
+            x: rand::thread_rng().gen(),
+            y: rand::thread_rng().gen(),
+            z: rand::thread_rng().gen(),
+        }
+    }
+
+    pub fn random_range(min: f64, max: f64) -> Vec3 {
+        Vec3 {
+            x: rand::thread_rng().gen_range(min, max),
+            y: rand::thread_rng().gen_range(min, max),
+            z: rand::thread_rng().gen_range(min, max),
         }
     }
 
