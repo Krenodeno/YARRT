@@ -32,7 +32,7 @@ impl PinholeCamera {
         let half_width = aspect * half_height;
 
         PinholeCamera {
-            origin: Vec3::new(0.0, 0.0, 0.0),
+            origin: Vec3::default(),
             lower_left_corner: Vec3::new(-half_width, -half_height, -1.0),
             horizontal: Vec3::new(2.0 * half_width, 0.0, 0.0),
             vertical: Vec3::new(0.0, 2.0 * half_height, 0.0),
@@ -41,7 +41,7 @@ impl PinholeCamera {
 
     pub fn default() -> PinholeCamera {
         PinholeCamera {
-            origin: Vec3::new(0.0, 0.0, 0.0),
+            origin: Vec3::default(),
             lower_left_corner: Vec3::new(-2.0, -1.0, -1.0),
             horizontal: Vec3::new(4.0, 0.0, 0.0),
             vertical: Vec3::new(0.0, 2.0, 0.0),

@@ -92,7 +92,7 @@ fn color(ray: &Ray, world: &dyn Hitable, depth: u32) -> Vec3 {
                     return attenuation * color(&scattered, world, depth-1);
                 }
             }
-            return Vec3::new(0.0, 0.0, 0.0);
+            return Vec3::default();
         },
         None => {
             // sky color
@@ -123,7 +123,7 @@ fn main() {
 
     let aspect_ratio = image_width as f64 / image_height as f64;
     let lookfrom = Vec3::new(13.0, 2.0, 3.0);
-    let lookat = Vec3::new(0.0, 0.0, 0.0);
+    let lookat = Vec3::default();
     let up = Vec3::new(0.0, 1.0, 0.0);
     let dist_to_focus = 10.0;
     let aperture = 0.1;
@@ -140,7 +140,7 @@ fn main() {
     for j in (0..image_height).rev() {
         eprint!("                         \rScanlines remaining: {}\r", j);
         for i in 0..image_width {
-            let mut col = Vec3::new(0.0, 0.0, 0.0);
+            let mut col = Vec3::default();
             for _s in 0..sample_per_pixel {
                 let u = (i as f64 + rng.gen::<f64>()) / image_width as f64;
                 let v = (j as f64 + rng.gen::<f64>()) / image_height as f64;

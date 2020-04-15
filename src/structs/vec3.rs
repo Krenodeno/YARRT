@@ -12,7 +12,7 @@ use std::ops::SubAssign;
 use std::fmt;
 use rand::Rng;
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Copy, Clone, Debug, Default)]
 pub struct Vec3 {
     pub x: f64,
     pub y: f64,
