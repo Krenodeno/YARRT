@@ -42,19 +42,19 @@ impl Material for Dielectric {
         if etai_over_etat * sin_theta > 1.0 {
             // Must reflect
             let reflected = reflect(&ray.direction(), &rec.normal);
-            let scattered = Ray::from(rec.p, reflected);
+            let scattered = Ray::new(rec.p, reflected, ray.time());
             return Some((attenuation, scattered));
         }
         // Can refract
         let reflect_prob = schlick(cos_theta, etai_over_etat);
         if rand::thread_rng().gen::<f64>() < reflect_prob {
             let reflected = reflect(&unit_direction, &rec.normal);
-            let scattered = Ray::from(rec.p, reflected);
+            let scattered = Ray::new(rec.p, reflected, ray.time());
             return Some((attenuation, scattered));
         }
 
         let refracted = refract(&unit_direction, &rec.normal, etai_over_etat);
-        let scattered = Ray::from(rec.p, refracted);
+        let scattered = Ray::new(rec.p, refracted, ray.time());
         return Some((attenuation, scattered));
     }
 }

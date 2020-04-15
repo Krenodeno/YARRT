@@ -2,6 +2,8 @@ mod hitable;
 pub use hitable::*;
 mod sphere;
 pub use sphere::*;
+mod moving_sphere;
+pub use moving_sphere::*;
 
 
 pub struct HitableList {

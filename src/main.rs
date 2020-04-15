@@ -10,7 +10,7 @@ use materials::*;
 
 use rand::Rng;
 use std::sync::Arc;
-use std::time::{Duration, Instant};
+use std::time::{Instant};
 
 fn random_scene() -> HitableList {
     let mut world = HitableList::new();
@@ -29,8 +29,11 @@ fn random_scene() -> HitableList {
                 if choose_mat < 0.8 {
                     // Diffuse
                     let albedo = Vec3::random() * Vec3::random();
-                    world.push(Box::new(Sphere{
-                        center: center,
+                    world.push(Box::new(MovingSphere{
+                        center0: center,
+                        center1: center + Vec3::new(0.0, 0.5 * rand::thread_rng().gen::<f64>(), 0.0),
+                        time0: 0.0,
+                        time1: 1.0,
                         radius: 0.2,
                         material: Arc::new(Lambertian{albedo}),
                     }));
@@ -127,7 +130,7 @@ fn main() {
     let up = Vec3::new(0.0, 1.0, 0.0);
     let dist_to_focus = 10.0;
     let aperture = 0.1;
-    let cam = ThinLensCamera::new_look_at(lookfrom, lookat, up, 20.0, aspect_ratio, aperture, dist_to_focus);
+    let cam = ThinLensCamera::new_look_at(lookfrom, lookat, up, 20.0, aspect_ratio, aperture, dist_to_focus, 0.0, 1.0);
 
     // Create spheres and add them to the list
     let world = random_scene();

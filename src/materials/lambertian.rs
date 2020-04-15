@@ -9,10 +9,10 @@ pub struct Lambertian {
 }
 
 impl Material for Lambertian {
-    fn scatter(&self, _ray: &Ray, rec: &HitRecord) -> Option<(Vec3, Ray)> {
+    fn scatter(&self, ray: &Ray, rec: &HitRecord) -> Option<(Vec3, Ray)> {
         // Different diffuse distributions possibles, see materials/mod.rs
         let scatter_direction = rec.normal + random_unit_vector();
-        let scattered = Ray::from(rec.p, scatter_direction);
+        let scattered = Ray::new(rec.p, scatter_direction, ray.time());
         Some((self.albedo, scattered))
     }
 }
