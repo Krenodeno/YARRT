@@ -11,6 +11,7 @@ use materials::*;
 use rand::Rng;
 use std::sync::Arc;
 use std::time::{Instant};
+use std::thread;
 
 fn random_scene() -> HitableList {
     let mut world = HitableList::new();
@@ -119,6 +120,7 @@ fn main() {
     let image_height: u16 = 100;
     let sample_per_pixel: u16 = 100;
     let max_depth: u32 = 50;
+    let thread_count: usize = 4;
 
     println!("P3");
     println!("{} {}", image_width, image_height);
@@ -131,32 +133,64 @@ fn main() {
     let dist_to_focus = 10.0;
     let aperture = 0.1;
     let cam = ThinLensCamera::new_look_at(lookfrom, lookat, up, 20.0, aspect_ratio, aperture, dist_to_focus, 0.0, 1.0);
+    let cam = Arc::new(cam);
 
     // Create spheres and add them to the list
-    let world = random_scene();
-
-    let mut rng = rand::thread_rng();
+    let world = Arc::new(random_scene());
 
     let before = Instant::now();
 
-    // Image calculation
-    for j in (0..image_height).rev() {
-        eprint!("                         \rScanlines remaining: {}\r", j);
-        for i in 0..image_width {
-            let mut col = Vec3::default();
-            for _s in 0..sample_per_pixel {
-                let u = (i as f64 + rng.gen::<f64>()) / image_width as f64;
-                let v = (j as f64 + rng.gen::<f64>()) / image_height as f64;
-                let r = cam.get_ray(u, v);
+    let mut handles = vec![];
+    let lines: Arc<Vec<u16>> = Arc::new((0..image_height).rev().collect());
 
-                let _p = r.point_at(2.0);
-                col += color(&r, &world, max_depth);
+    let lines_per_thread = lines.len() / thread_count;
+    let tougher_threads = lines.len() % thread_count;
+    let mut offset = 0;
+
+    for id in 0..thread_count {
+
+        let chunksize =
+            if id < tougher_threads {
+                lines_per_thread + 1
+            } else {
+                lines_per_thread
+            };
+
+        let world = world.clone();
+        let camera = cam.clone();
+        let lines = lines.clone();
+
+        handles.push(thread::spawn(move || {
+            let mut rng = rand::thread_rng();
+            let mut pixels = vec![];
+            let end = offset + chunksize;
+            for j in &lines[offset..end] {
+                for i in 0..image_width {
+                    let mut col = Vec3::default();
+                    for _s in 0..sample_per_pixel {
+                        let u = (i as f64 + rng.gen::<f64>()) / image_width as f64;
+                        let v = (*j as f64 + rng.gen::<f64>()) / image_height as f64;
+                        let r = camera.get_ray(u, v);
+
+                        let _p = r.point_at(2.0);
+                        col += color(&r, world.as_ref(), max_depth);
+                    }
+
+                    col /= sample_per_pixel as f64;
+                    let col = gamma(col);
+
+                    pixels.push(col);
+                }
             }
+            return pixels;
+        }));
+        offset += chunksize;
+    }
 
-            col /= sample_per_pixel as f64;
-            let col = gamma(col);
-
-            println!("{}", col);
+    for handle in handles {
+        let pixels = handle.join().unwrap();
+        for pixel in pixels {
+            println!("{}", pixel);
         }
     }
 
