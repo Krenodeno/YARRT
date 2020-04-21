@@ -3,8 +3,12 @@ name: Rust
 on: [push, pull_request]
 
 jobs:
-  build-linux-release:
-    runs-on: ubuntu-latest
+  build:
+    strategy:
+      matrix:
+        platform: [ubuntu-latest, windows-latest]
+        name: [linux, win]
+    runs-on: ${{matrix.platform}}
     steps:
     - uses: actions/checkout@v2
 
@@ -29,5 +33,5 @@ jobs:
     - name: Save artifact
       uses: actions/upload-artifact@v1
       with:
-        name: yarrt-nightly
+        name: yarrt-nightly-${{matrix.name}}
         path: target/release/rust_tracing
