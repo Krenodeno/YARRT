@@ -1,2 +1,8 @@
 /target
 **/*.rs.bk
+
+# VS Code
+.vscode/
+
+# generated images
+**.ppm
