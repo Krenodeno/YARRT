@@ -31,6 +31,4 @@ jobs:
       uses: actions/upload-artifact@v1
       with:
         name: yarrt-nightly-${{ runner.os }}
-        path: 
-          -target/release/rust_tracing
-          -target/release/rust_tracing.exe
+        path: target/release/rust_tracing(.exe)?
