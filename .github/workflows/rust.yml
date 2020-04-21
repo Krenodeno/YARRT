@@ -7,7 +7,7 @@ jobs:
     strategy:
       matrix:
         platform: [ubuntu-latest, windows-latest]
-    runs-on: ${{matrix.platform}}
+    runs-on: ${{ matrix.platform }}
     steps:
     - uses: actions/checkout@v2
 
@@ -27,8 +27,16 @@ jobs:
     - name: Run tests
       run: cargo test --verbose
 
-    - name: Save artifact
+    - name: Save Linux artifact
+      if: runner.os ==  Linux
       uses: actions/upload-artifact@v1
       with:
         name: yarrt-nightly-${{ runner.os }}
-        path: target/release/rust_tracing(.exe)?
+        path: target/release/rust_tracing
+    
+    - name: Save Windows artifact
+      if: runner.os == Windows
+      uses: actions/upload-artifact@v1
+      with:
+        name: yarrt-nightly-${{ runner.os }}
+        path: targeT/release/rust_tracing.exe
