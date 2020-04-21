@@ -4,11 +4,7 @@ on: [push, pull_request]
 
 jobs:
   build:
-    strategy:
-      matrix:
-        platform: [ubuntu-latest, windows-latest]
-        name: [linux, win]
-    runs-on: ${{matrix.platform}}
+    runs-on: [ubuntu-latest, windows-latest]
     steps:
     - uses: actions/checkout@v2
 
@@ -18,11 +14,9 @@ jobs:
         cache-name: cache-rust
       with:
         path: target/
-        key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('Cargo.lock') }}
+        key: ${{ runner.os }}-build-${{ hashFiles('Cargo.lock') }}
         restore-keys: |
-           ${{ runner.os }}-build-${{ env.cache-name }}-
            ${{ runner.os }}-build-
-           ${{ runner.os }}-
 
     - name: Build
       run: cargo build --release --verbose
@@ -33,5 +27,7 @@ jobs:
     - name: Save artifact
       uses: actions/upload-artifact@v1
       with:
-        name: yarrt-nightly-${{matrix.name}}
-        path: target/release/rust_tracing
+        name: yarrt-nightly-${{ runner.os }}
+        path: 
+          -target/release/rust_tracing
+          -target/release/rust_tracing.exe
