@@ -28,14 +28,14 @@ jobs:
       run: cargo test --verbose
 
     - name: Save Linux artifact
-      if: runner.os ==  Linux
+      if: runner.os ==  'Linux'
       uses: actions/upload-artifact@v1
       with:
         name: yarrt-nightly-${{ runner.os }}
         path: target/release/rust_tracing
     
     - name: Save Windows artifact
-      if: runner.os == Windows
+      if: runner.os == 'Windows'
       uses: actions/upload-artifact@v1
       with:
         name: yarrt-nightly-${{ runner.os }}
