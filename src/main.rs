@@ -115,33 +115,12 @@ fn gamma(color: Vec3) -> Vec3 {
     }
 }
 
-fn main() {
-    let image_width: u16 = 200;
-    let image_height: u16 = 100;
-    let sample_per_pixel: u16 = 100;
+fn render(image_width: u32, image_height: u32, sample_per_pixel: u32, world: Arc<dyn Hitable>, camera: Arc<dyn Camera>) {
     let max_depth: u32 = 50;
-    let thread_count: usize = 4;
-
-    println!("P3");
-    println!("{} {}", image_width, image_height);
-    println!("255");
-
-    let aspect_ratio = image_width as f64 / image_height as f64;
-    let lookfrom = Vec3::new(13.0, 2.0, 3.0);
-    let lookat = Vec3::default();
-    let up = Vec3::new(0.0, 1.0, 0.0);
-    let dist_to_focus = 10.0;
-    let aperture = 0.1;
-    let cam = ThinLensCamera::new_look_at(lookfrom, lookat, up, 20.0, aspect_ratio, aperture, dist_to_focus, 0.0, 1.0);
-    let cam = Arc::new(cam);
-
-    // Create spheres and add them to the list
-    let world = Arc::new(random_scene());
-
-    let before = Instant::now();
+    let thread_count = 4;
 
     let mut handles = vec![];
-    let lines: Arc<Vec<u16>> = Arc::new((0..image_height).rev().collect());
+    let lines: Arc<Vec<u32>> = Arc::new((0..image_height).rev().collect());
 
     let lines_per_thread = lines.len() / thread_count;
     let tougher_threads = lines.len() % thread_count;
@@ -157,7 +136,7 @@ fn main() {
             };
 
         let world = world.clone();
-        let camera = cam.clone();
+        let camera = camera.clone();
         let lines = lines.clone();
 
         handles.push(thread::spawn(move || {
@@ -193,6 +172,31 @@ fn main() {
             println!("{}", pixel);
         }
     }
+}
+
+fn main() {
+    let image_width: u32 = 200;
+    let image_height: u32 = 100;
+    let sample_per_pixel: u32 = 100;
+
+    println!("P3");
+    println!("{} {}", image_width, image_height);
+    println!("255");
+
+    let aspect_ratio = image_width as f64 / image_height as f64;
+    let lookfrom = Vec3::new(13.0, 2.0, 3.0);
+    let lookat = Vec3::default();
+    let up = Vec3::new(0.0, 1.0, 0.0);
+    let dist_to_focus = 10.0;
+    let aperture = 0.1;
+    let cam = ThinLensCamera::new_look_at(lookfrom, lookat, up, 20.0, aspect_ratio, aperture, dist_to_focus, 0.0, 1.0);
+
+    // Create spheres and add them to the list
+    let world = random_scene();
+
+    let before = Instant::now();
+
+    render(image_width, image_height, sample_per_pixel, Arc::from(world), Arc::from(cam));
 
     eprintln!("Done in {}secs!           ", before.elapsed().as_secs());
 }
