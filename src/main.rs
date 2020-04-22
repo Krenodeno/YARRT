@@ -10,6 +10,7 @@ use materials::*;
 
 use rand::Rng;
 use std::sync::Arc;
+use std::sync::mpsc;
 use std::time::{Instant};
 use std::thread;
 
@@ -126,6 +127,8 @@ fn render(image_width: u32, image_height: u32, sample_per_pixel: u32, world: Arc
     let tougher_threads = lines.len() % thread_count;
     let mut offset = 0;
 
+    let (tx, rx) = mpsc::channel();
+
     for id in 0..thread_count {
 
         let chunksize =
@@ -138,6 +141,7 @@ fn render(image_width: u32, image_height: u32, sample_per_pixel: u32, world: Arc
         let world = world.clone();
         let camera = camera.clone();
         let lines = lines.clone();
+        let tx = tx.clone();
 
         handles.push(thread::spawn(move || {
             let mut rng = rand::thread_rng();
@@ -160,10 +164,18 @@ fn render(image_width: u32, image_height: u32, sample_per_pixel: u32, world: Arc
 
                     pixels.push(col);
                 }
+                tx.send(1).unwrap();
             }
             return pixels;
         }));
         offset += chunksize;
+    }
+
+    // print status
+    // lines is a reversed list of number, so it work well to count
+    for i in lines.iter() {
+        rx.recv().unwrap();
+        eprint!("Scanlines remaining: {}    \r", i);
     }
 
     for handle in handles {
@@ -191,7 +203,7 @@ fn main() {
     let aperture = 0.1;
     let cam = ThinLensCamera::new_look_at(lookfrom, lookat, up, 20.0, aspect_ratio, aperture, dist_to_focus, 0.0, 1.0);
 
-    // Create spheres and add them to the list
+    // Create a scene full of random spheres
     let world = random_scene();
 
     let before = Instant::now();
