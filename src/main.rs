@@ -14,6 +14,8 @@ use std::sync::mpsc;
 use std::time::{Instant};
 use std::thread;
 
+/// Generate a random scene with 484 little random spheres,
+/// 3 bigger spheres in center, and a spheric ground.
 fn random_scene() -> HitableList {
     let mut world = HitableList::new();
 
@@ -116,7 +118,8 @@ fn gamma(color: Vec3) -> Vec3 {
     }
 }
 
-fn render(image_width: u32, image_height: u32, sample_per_pixel: u32, world: Arc<dyn Hitable>, camera: Arc<dyn Camera>) {
+/// Dispatch ray-tracing algorithm on several threads to create an image of the current scene
+fn render(image_width: u32, image_height: u32, sample_per_pixel: u32, world: Arc<dyn Hitable>, camera: Arc<dyn Camera>) -> Image {
     let max_depth: u32 = 50;
     let thread_count = 4;
 
@@ -162,7 +165,9 @@ fn render(image_width: u32, image_height: u32, sample_per_pixel: u32, world: Arc
                     col /= sample_per_pixel as f64;
                     let col = gamma(col);
 
-                    pixels.push(col);
+                    pixels.push(col.x);
+                    pixels.push(col.y);
+                    pixels.push(col.z);
                 }
                 tx.send(1).unwrap();
             }
@@ -178,22 +183,20 @@ fn render(image_width: u32, image_height: u32, sample_per_pixel: u32, world: Arc
         eprint!("Scanlines remaining: {}    \r", i);
     }
 
+    let mut buffer = Vec::new();
+
     for handle in handles {
-        let pixels = handle.join().unwrap();
-        for pixel in pixels {
-            println!("{}", pixel);
-        }
+        let mut pixels = handle.join().unwrap();
+        buffer.append(&mut pixels);
     }
+
+    Image::from(image_width, image_height, PixelFormat::RGBU8, &buffer)
 }
 
 fn main() {
-    let image_width: u32 = 200;
-    let image_height: u32 = 100;
+    let image_width: u32 = 400;
+    let image_height: u32 = 225;
     let sample_per_pixel: u32 = 100;
-
-    println!("P3");
-    println!("{} {}", image_width, image_height);
-    println!("255");
 
     let aspect_ratio = image_width as f64 / image_height as f64;
     let lookfrom = Vec3::new(13.0, 2.0, 3.0);
@@ -208,7 +211,9 @@ fn main() {
 
     let before = Instant::now();
 
-    render(image_width, image_height, sample_per_pixel, Arc::from(world), Arc::from(cam));
+    let image = render(image_width, image_height, sample_per_pixel, Arc::from(world), Arc::from(cam));
 
     eprintln!("Done in {}secs!           ", before.elapsed().as_secs());
+
+    println!("{}", image.encode(ImageFormat::PPM));
 }
