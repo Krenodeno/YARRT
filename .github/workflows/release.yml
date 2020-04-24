@@ -10,20 +10,20 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+      - uses: actions/checkout@v2
 
-    - name: Cache release
-      uses: actions/cache@v1
-      env:
-        cache-name: cache-rust
-      with:
-        path: target/
-        key: ${{ runner.os }}-build-${{ hashFiles('Cargo.lock') }}
-        restore-keys: |
-           ${{ runner.os }}-build-
+      - name: Cache release
+        uses: actions/cache@v1
+        env:
+          cache-name: cache-rust
+        with:
+          path: target/
+          key: ${{ runner.os }}-build-${{ hashFiles('Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-build-
 
-    - name: Lint
-      run: cargo clippy --release
+      - name: Lint
+        run: cargo clippy --release
 
   build:
     strategy:
@@ -31,34 +31,34 @@ jobs:
         platform: [ubuntu-latest, windows-latest]
     runs-on: ${{ matrix.platform }}
     steps:
-    - uses: actions/checkout@v2
+      - uses: actions/checkout@v2
 
-    - name: Cache release
-      uses: actions/cache@v1
-      env:
-        cache-name: cache-rust
-      with:
-        path: target/
-        key: ${{ runner.os }}-build-${{ hashFiles('Cargo.lock') }}
-        restore-keys: |
-           ${{ runner.os }}-build-
+      - name: Cache release
+        uses: actions/cache@v1
+        env:
+          cache-name: cache-rust
+        with:
+          path: target/
+          key: ${{ runner.os }}-build-${{ hashFiles('Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-build-
 
-    - name: Build
-      run: cargo build --release --verbose
+      - name: Build
+        run: cargo build --release --verbose
 
-    - name: Save Linux artifact
-      if: runner.os == 'Linux'
-      uses: actions/upload-artifact@v1
-      with:
-        name: yarrt-nightly-${{ runner.os }}
-        path: target/release/rust_tracing
+      - name: Save Linux artifact
+        if: runner.os == 'Linux'
+        uses: actions/upload-artifact@v1
+        with:
+          name: yarrt-nightly-${{ runner.os }}
+          path: target/release/rust_tracing
 
-    - name: Save Windows artifact
-      if: runner.os == 'Windows'
-      uses: actions/upload-artifact@v1
-      with:
-        name: yarrt-nightly-${{ runner.os }}
-        path: targeT/release/rust_tracing.exe
+      - name: Save Windows artifact
+        if: runner.os == 'Windows'
+        uses: actions/upload-artifact@v1
+        with:
+          name: yarrt-nightly-${{ runner.os }}
+          path: targeT/release/rust_tracing.exe
 
   test:
     runs-on: ubuntu-latest
@@ -66,11 +66,11 @@ jobs:
       -use: actions/checkout@v2
 
       - name: Cache release
-      uses: actions/cache@v1
-      env:
-        cache-name: cache-rust
-      with:
-        path: target/
-        key: ${{ runner.os }}-build-${{ hashFiles('Cargo.lock') }}
-        restore-keys: |
-           ${{ runner.os }}-build-
+        uses: actions/cache@v1
+        env:
+          cache-name: cache-rust
+        with:
+          path: target/
+          key: ${{ runner.os }}-build-${{ hashFiles('Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-build-
