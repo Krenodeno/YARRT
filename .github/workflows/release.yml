@@ -1,7 +1,9 @@
 name: Build release
 
-on: release
-  types: create
+on:
+  release
+  types:
+    - create
 
 jobs:
 
