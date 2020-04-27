@@ -12,7 +12,7 @@ pub struct Metal {
 impl Metal {
     pub fn new(albedo: Vec3, fuzz: f64) -> Metal {
         Metal {
-            albedo: albedo,
+            albedo,
             fuzziness: fuzz.max(0.0).min(1.0),
         }
     }
@@ -24,10 +24,10 @@ impl Material for Metal {
         let scattered = Ray::new(rec.p, reflected + self.fuzziness * random_in_unit_sphere(), ray.time());
         let attenuation = self.albedo;
         if dot(scattered.direction(), rec.normal) > 0.0 {
-            return Some((attenuation, scattered));
+            Some((attenuation, scattered))
         }
         else {
-            return None;
+            None
         }
     }
 }

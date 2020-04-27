@@ -82,7 +82,7 @@ fn random_scene() -> HitableList {
         material: Arc::new(Metal::new(Vec3::new(0.7, 0.6, 0.5), 0.0)),
     }));
 
-    return world;
+    world
 }
 
 /// Compute the color of the current ray
@@ -99,13 +99,13 @@ fn color(ray: &Ray, world: &dyn Hitable, depth: u32) -> Vec3 {
                     return attenuation * color(&scattered, world, depth-1);
                 }
             }
-            return Vec3::default();
+            Vec3::default()
         },
         None => {
             // sky color
             let unit_direction = unit_vector(ray.direction());
             let t: f64 = 0.5 * (unit_direction.y + 1.0);
-            return (1.0 - t) * Vec3::new(1.0, 1.0, 1.0) + t * Vec3::new(0.5, 0.7, 1.0);
+            (1.0 - t) * Vec3::new(1.0, 1.0, 1.0) + t * Vec3::new(0.5, 0.7, 1.0)
         }
     }
 }
@@ -171,7 +171,7 @@ fn render(image_width: u32, image_height: u32, sample_per_pixel: u32, world: Arc
                 }
                 tx.send(1).unwrap();
             }
-            return pixels;
+            pixels
         }));
         offset += chunksize;
     }
