@@ -47,7 +47,7 @@ fn random_scene() -> HitableList {
                     let albedo = Vec3::random_range(0.5, 1.0);
                     let fuzz = rand::thread_rng().gen_range(0.0, 0.5);
                     world.push(Box::new(Sphere{
-                        center: center,
+                        center,
                         radius: 0.2,
                         material: Arc::new(Metal::new(albedo, fuzz)),
                     }));
@@ -55,7 +55,7 @@ fn random_scene() -> HitableList {
                 else {
                     // Glass
                     world.push(Box::new(Sphere{
-                        center: center,
+                        center,
                         radius: 0.2,
                         material: Arc::new(Dielectric{ref_idx: 1.5}),
                     }));

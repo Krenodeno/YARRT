@@ -10,9 +10,9 @@ pub struct Ray {
 impl Ray {
     pub fn new(origin: Vec3, direction: Vec3, time: f64) -> Ray {
         Ray {
-            orig: Vec3{x:origin.x, y:origin.y, z:origin.z},
-            dir: Vec3{x:direction.x, y:direction.y, z:direction.z},
-            time: time,
+            orig: origin,
+            dir: direction,
+            time,
         }
     }
 

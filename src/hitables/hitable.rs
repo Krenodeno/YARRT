@@ -15,11 +15,11 @@ impl HitRecord {
         let face = dot(ray.direction(), outward_normal) < 0.0;
         let normal = if face { outward_normal } else { -outward_normal };
         HitRecord {
-            t: t,
-            p: p,
+            t,
+            p,
             front_face: face,
-            normal: normal,
-            material: material,
+            normal,
+            material,
         }
     }
 }

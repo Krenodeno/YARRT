@@ -8,9 +8,9 @@ pub struct Color {
 impl Color {
 	fn new(r: f64, g: f64, b:f64) -> Color {
 		Color {
-			r: r,
-			g: g,
-			b: b,
+			r,
+			g,
+			b,
 		}
 	}
 

@@ -20,9 +20,9 @@ impl Image {
         let p: Vec<f64> = Vec::with_capacity((width * height) as usize);
 
         Image{
-            width: width,
-            height: height,
-            format: format,
+            width,
+            height,
+            format,
             pixels: p,
         }
     }
@@ -35,9 +35,9 @@ impl Image {
 
         let p: Vec<f64> = Vec::from(pixels);
         Image {
-            width: width,
-            height: height,
-            format: format,
+            width,
+            height,
+            format,
             pixels: p,
         }
     }
