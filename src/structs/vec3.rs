@@ -102,9 +102,9 @@ impl Add<Vec3> for &Vec3 {
     type Output = Vec3;
 
     fn add(self, mut other: Vec3) -> Self::Output {
-        other.x = other.x + self.x;
-        other.y = other.y + self.y;
-        other.z = other.z + self.z;
+        other.x += self.x;
+        other.y += self.y;
+        other.z += self.z;
         other
     }
 }
