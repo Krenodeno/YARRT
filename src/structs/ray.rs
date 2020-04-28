@@ -37,6 +37,6 @@ impl Ray {
     }
 
     pub fn point_at(&self, t: f64) -> Vec3 {
-        &self.orig + &(&self.dir * t)
+        self.orig + (self.dir * t)
     }
 }
