@@ -1,4 +1,3 @@
-use std::char;
 
 pub enum PixelFormat {
     RGBU8,
