@@ -30,12 +30,9 @@ impl Hitable for HitableList {
         let mut rec: Option<HitRecord> = None;
         for i in 0..self.list.len() {
             let temp_rec = self.list[i].hit(&ray, t_min, closest_so_far);
-            match temp_rec {
-                Some(n) => {
+            if let Some(n) = temp_rec {
                     closest_so_far = n.t;
                     rec = Some(n);
-                },
-                None => (),
             };
         }
         rec
