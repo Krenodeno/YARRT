@@ -28,11 +28,11 @@ impl Material for Dielectric {
     fn scatter(&self, ray: &Ray, rec: &HitRecord) -> Option<(Vec3, Ray)> {
         let attenuation = Vec3::new(1.0, 1.0, 1.0);
         
-        let mut etai_over_etat = self.ref_idx;
-        if rec.front_face {
-            etai_over_etat = 1.0 / self.ref_idx;
-        }
-        let etai_over_etat = etai_over_etat;	// not mutable anymore
+        let etai_over_etat = if rec.front_face {
+            1.0 / self.ref_idx
+        } else {
+            self.ref_idx
+        };
 
         let unit_direction = unit_vector(ray.direction());
 
