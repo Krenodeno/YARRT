@@ -94,7 +94,6 @@ fn encode_ppm(image: &Image) -> String {
                 let b = subpixel.next().unwrap();
                 encode_one_pixel(r, g, b)
             },
-            _ => panic!("Not implemented!"),
         }
     }
 
