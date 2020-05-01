@@ -28,7 +28,7 @@ fn random_scene() -> HitableList {
     for a in -11..11 {
         for b in -11..11 {
             let choose_mat = rand::thread_rng().gen::<f64>();
-            let center = Vec3::new(a as f64 + 0.9 * rand::thread_rng().gen::<f64>(), 0.2, b as f64 + 0.9 * rand::thread_rng().gen::<f64>());
+            let center = Vec3::new(f64::from(a) + 0.9 * rand::thread_rng().gen::<f64>(), 0.2, f64::from(b) + 0.9 * rand::thread_rng().gen::<f64>());
             if (center - Vec3::new(4.0, 0.2, 0.0)).length() > 0.9 {
                 if choose_mat < 0.8 {
                     // Diffuse
@@ -154,15 +154,15 @@ fn render(image_width: u32, image_height: u32, sample_per_pixel: u32, world: Arc
                 for i in 0..image_width {
                     let mut col = Vec3::default();
                     for _s in 0..sample_per_pixel {
-                        let u = (i as f64 + rng.gen::<f64>()) / image_width as f64;
-                        let v = (*j as f64 + rng.gen::<f64>()) / image_height as f64;
+                        let u = (f64::from(i) + rng.gen::<f64>()) / f64::from(image_width);
+                        let v = (f64::from(*j) + rng.gen::<f64>()) / f64::from(image_height);
                         let r = camera.get_ray(u, v);
 
                         let _p = r.point_at(2.0);
                         col += color(&r, world.as_ref(), max_depth);
                     }
 
-                    col /= sample_per_pixel as f64;
+                    col /= f64::from(sample_per_pixel);
                     let col = gamma(col);
 
                     pixels.push(col.x);
@@ -198,7 +198,7 @@ fn main() {
     let image_height: u32 = 225;
     let sample_per_pixel: u32 = 100;
 
-    let aspect_ratio = image_width as f64 / image_height as f64;
+    let aspect_ratio = f64::from(image_width) / f64::from(image_height);
     let lookfrom = Vec3::new(13.0, 2.0, 3.0);
     let lookat = Vec3::default();
     let up = Vec3::new(0.0, 1.0, 0.0);
