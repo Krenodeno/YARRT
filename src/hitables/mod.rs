@@ -4,7 +4,7 @@ mod sphere;
 pub use sphere::*;
 mod moving_sphere;
 pub use moving_sphere::*;
-
+mod aabb;
 
 pub struct HitableList {
     list: Vec<Box<dyn Hitable>>,
@@ -31,8 +31,8 @@ impl Hitable for HitableList {
         for i in 0..self.list.len() {
             let temp_rec = self.list[i].hit(&ray, t_min, closest_so_far);
             if let Some(n) = temp_rec {
-                    closest_so_far = n.t;
-                    rec = Some(n);
+                closest_so_far = n.t;
+                rec = Some(n);
             };
         }
         rec
