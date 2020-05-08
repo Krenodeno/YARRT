@@ -5,9 +5,14 @@ pub use sphere::*;
 mod moving_sphere;
 pub use moving_sphere::*;
 mod aabb;
+pub use aabb::*;
+mod bvh;
+pub use bvh::*;
+
+use std::sync::Arc;
 
 pub struct HitableList {
-    list: Vec<Box<dyn Hitable>>,
+    list: Vec<Arc<dyn Hitable>>,
 }
 
 impl HitableList {
@@ -15,7 +20,7 @@ impl HitableList {
         HitableList { list: Vec::new() }
     }
 
-    pub fn push(&mut self, elem: Box<dyn Hitable>) {
+    pub fn push(&mut self, elem: Arc<dyn Hitable>) {
         self.list.push(elem);
     }
 
@@ -36,5 +41,26 @@ impl Hitable for HitableList {
             };
         }
         rec
+    }
+
+    fn bounding_box(&self, t0: f64, t1: f64) -> Option<Aabb> {
+        if self.list.is_empty() {
+            return None;
+        }
+
+        let first = self.list[0].bounding_box(t0, t1);
+
+        if let Some(b) = first {
+            let mut output_box = Aabb{min: b.min, max: b.max};
+            for hitable in &self.list {
+                match hitable.bounding_box(t0, t1) {
+                    Some(b) => output_box = surrounding_box(&output_box, &b),
+                    None => return None,
+                }
+            }
+            return Some(output_box);
+        }
+
+        None
     }
 }

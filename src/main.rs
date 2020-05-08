@@ -19,7 +19,7 @@ use std::thread;
 fn random_scene() -> HitableList {
     let mut world = HitableList::new();
 
-    world.push(Box::new(Sphere{
+    world.push(Arc::new(Sphere{
         center: Vec3::new(0.0, -1000.0, 0.0),
         radius: 1000.0,
         material: Arc::new(Lambertian{albedo: Vec3::new(0.5, 0.5, 0.5)}),
@@ -33,7 +33,7 @@ fn random_scene() -> HitableList {
                 if choose_mat < 0.8 {
                     // Diffuse
                     let albedo = Vec3::random() * Vec3::random();
-                    world.push(Box::new(MovingSphere{
+                    world.push(Arc::new(MovingSphere{
                         center0: center,
                         center1: center + Vec3::new(0.0, 0.5 * rand::thread_rng().gen::<f64>(), 0.0),
                         time0: 0.0,
@@ -46,7 +46,7 @@ fn random_scene() -> HitableList {
                     // Metal
                     let albedo = Vec3::random_range(0.5, 1.0);
                     let fuzz = rand::thread_rng().gen_range(0.0, 0.5);
-                    world.push(Box::new(Sphere{
+                    world.push(Arc::new(Sphere{
                         center,
                         radius: 0.2,
                         material: Arc::new(Metal::new(albedo, fuzz)),
@@ -54,7 +54,7 @@ fn random_scene() -> HitableList {
                 }
                 else {
                     // Glass
-                    world.push(Box::new(Sphere{
+                    world.push(Arc::new(Sphere{
                         center,
                         radius: 0.2,
                         material: Arc::new(Dielectric{ref_idx: 1.5}),
@@ -64,19 +64,19 @@ fn random_scene() -> HitableList {
         }
     }
 
-    world.push(Box::new(Sphere{
+    world.push(Arc::new(Sphere{
         center: Vec3::new(0.0, 1.0, 0.0),
         radius: 1.0,
         material: Arc::new(Dielectric{ref_idx: 1.5}),
     }));
 
-    world.push(Box::new(Sphere{
+    world.push(Arc::new(Sphere{
         center: Vec3::new(-4.0, 1.0, 0.0),
         radius: 1.0,
         material: Arc::new(Lambertian{albedo: Vec3::new(0.4, 0.2, 0.1)}),
     }));
 
-    world.push(Box::new(Sphere{
+    world.push(Arc::new(Sphere{
         center: Vec3::new(4.0, 1.0, 0.0),
         radius: 1.0,
         material: Arc::new(Metal::new(Vec3::new(0.7, 0.6, 0.5), 0.0)),
@@ -119,7 +119,7 @@ fn gamma(color: Vec3) -> Vec3 {
 }
 
 /// Dispatch ray-tracing algorithm on several threads to create an image of the current scene
-fn render(image_width: u32, image_height: u32, sample_per_pixel: u32, world: Arc<dyn Hitable>, camera: Arc<dyn Camera>) -> Image {
+fn render(image_width: u32, image_height: u32, sample_per_pixel: u32, world: HitableList, camera: Arc<dyn Camera>) -> Image {
     let max_depth: u32 = 50;
     let thread_count = 4;
 
@@ -132,6 +132,9 @@ fn render(image_width: u32, image_height: u32, sample_per_pixel: u32, world: Arc
 
     let (tx, rx) = mpsc::channel();
 
+    // Compute a BVH of the scene
+    let bvh = BVHNode::new(&world, 0.0, 0.1);
+
     for id in 0..thread_count {
 
         let chunksize =
@@ -141,10 +144,10 @@ fn render(image_width: u32, image_height: u32, sample_per_pixel: u32, world: Arc
                 lines_per_thread
             };
 
-        let world = world.clone();
         let camera = camera.clone();
         let lines = lines.clone();
         let tx = tx.clone();
+        let bvh = bvh.clone();
 
         handles.push(thread::spawn(move || {
             let mut rng = rand::thread_rng();
@@ -159,7 +162,7 @@ fn render(image_width: u32, image_height: u32, sample_per_pixel: u32, world: Arc
                         let r = camera.get_ray(u, v);
 
                         let _p = r.point_at(2.0);
-                        col += color(&r, world.as_ref(), max_depth);
+                        col += color(&r, &bvh, max_depth);
                     }
 
                     col /= f64::from(sample_per_pixel);
@@ -211,7 +214,7 @@ fn main() {
 
     let before = Instant::now();
 
-    let image = render(image_width, image_height, sample_per_pixel, Arc::from(world), Arc::from(cam));
+    let image = render(image_width, image_height, sample_per_pixel, world, Arc::from(cam));
 
     eprintln!("Done in {}secs!           ", before.elapsed().as_secs());
 
