@@ -1,5 +1,6 @@
 use crate::structs::{Ray, Vec3};
 
+#[derive(Clone)]
 pub struct Aabb {
     pub min: Vec3,
     pub max: Vec3,
@@ -7,21 +8,17 @@ pub struct Aabb {
 
 impl Aabb {
     pub fn hit (&self, ray: &Ray, t_min: f64, t_max: f64) -> bool {
-        let bmin = [self.min.x, self.min.y, self.min.z];
-        let bmax = [self.max.x, self.max.y, self.max.z];
         let origin = ray.origin();
-        let orig = [origin.x, origin.y, origin.z];
         let direction = ray.direction();
-        let dir = [direction.x, direction.y, direction.z];
-
         for i in 0..3 {
-            let tmp0 = (bmin[i] - orig[i]) / dir[i];
-            let tmp1 = (bmax[i] - orig[i]) / dir[i];
-            let t0 = tmp0.min(tmp1);
-            let t1 = tmp0.max(tmp1);
-
-            let t_min = t0.max(t_min);
-            let t_max = t1.min(t_max);
+            let inv_dir = 1.0 / direction[i];
+            let mut t0 = (self.min[i] - origin[i]) * inv_dir;
+            let mut t1 = (self.max[i] - origin[i]) * inv_dir;
+            if inv_dir < 0.0 {
+                std::mem::swap(&mut t0, &mut t1);
+            }
+            let t_min = if t0 > t_min { t0 } else { t_min };
+            let t_max = if t1 < t_max { t1 } else { t_max };
 
             if t_max <= t_min {
                 return false;
@@ -30,4 +27,18 @@ impl Aabb {
 
         true
     }
+}
+
+pub fn surrounding_box(box0: &Aabb, box1: &Aabb) -> Aabb {
+    let small = Vec3::new(
+        box0.min.x.min(box1.min.x),
+        box0.min.y.min(box1.min.y),
+        box0.min.z.min(box1.min.z));
+
+    let big = Vec3::new(
+        box0.max.x.max(box1.max.x),
+        box0.max.y.max(box1.max.y),
+        box0.max.z.max(box1.max.z));
+
+    Aabb {min: small, max: big}
 }
