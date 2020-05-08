@@ -9,6 +9,9 @@ use std::ops::DivAssign;
 use std::ops::MulAssign;
 use std::ops::SubAssign;
 
+use std::ops::Index;
+use std::ops::IndexMut;
+
 use std::fmt;
 use rand::Rng;
 
@@ -369,5 +372,28 @@ impl SubAssign for Vec3 {
             self.x -= other.x;
             self.y -= other.y;
             self.z -= other.z;
+    }
+}
+
+impl Index<usize> for Vec3 {
+    type Output = f64;
+    fn index(&self, index: usize) -> &Self::Output {
+        match index {
+            0 => &self.x,
+            1 => &self.y,
+            2 => &self.z,
+            _ => panic!("requested index does not exist")
+        }
+    }
+}
+
+impl IndexMut<usize> for Vec3 {
+    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
+        match index {
+            0 => &mut self.x,
+            1 => &mut self.y,
+            2 => &mut self.y,
+            _ => panic!("requested index does not exist")
+        }
     }
 }
