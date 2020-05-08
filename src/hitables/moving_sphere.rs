@@ -1,4 +1,5 @@
 use super::hitable::*;
+use super::aabb::*;
 use crate::materials::Material;
 use std::sync::Arc;
 
@@ -43,5 +44,19 @@ impl Hitable for MovingSphere {
             }
         }
         None
+    }
+
+    fn bounding_box(&self, t0: f64, t1: f64) -> Option<Aabb> {
+        let box0 = Aabb {
+            min: self.center(t0) - Vec3::new(self.radius, self.radius, self.radius),
+            max: self.center(t0) + Vec3::new(self.radius, self.radius, self.radius),
+        };
+
+        let box1 = Aabb {
+            min: self.center(t1) - Vec3::new(self.radius, self.radius, self.radius),
+            max: self.center(t1) + Vec3::new(self.radius, self.radius, self.radius),
+        };
+
+        Some(surrounding_box(&box0, &box1))
     }
 }

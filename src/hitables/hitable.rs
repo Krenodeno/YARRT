@@ -1,5 +1,6 @@
 pub use crate::structs::*;
 use crate::materials::Material;
+use super::aabb::Aabb;
 use std::sync::Arc;
 
 pub struct HitRecord {
@@ -26,4 +27,6 @@ impl HitRecord {
 
 pub trait Hitable: Send + Sync {
     fn hit(&self, ray: &Ray, t_min: f64, t_max: f64) -> Option<HitRecord>;
+
+    fn bounding_box(&self, t0: f64, t1: f64) -> Option<Aabb>;
 }
