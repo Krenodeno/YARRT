@@ -5,6 +5,10 @@ mod vec3;
 pub use vec3::*;
 mod image;
 pub use image::*;
+mod texture;
+pub use texture::*;
+mod resources_manager;
+pub use resources_manager::*;
 
 use rand::Rng;
 
