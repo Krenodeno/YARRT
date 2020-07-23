@@ -1,6 +1,6 @@
-pub use crate::structs::*;
-use crate::materials::Material;
 use super::aabb::Aabb;
+use crate::materials::Material;
+pub use crate::structs::*;
 use std::sync::Arc;
 
 pub struct HitRecord {
@@ -12,9 +12,19 @@ pub struct HitRecord {
 }
 
 impl HitRecord {
-    pub fn new(t: f64, p: Vec3, ray: &Ray, outward_normal: Vec3, material: Arc<dyn Material>) -> HitRecord {
+    pub fn new(
+        t: f64,
+        p: Vec3,
+        ray: &Ray,
+        outward_normal: Vec3,
+        material: Arc<dyn Material>,
+    ) -> HitRecord {
         let face = dot(ray.direction(), outward_normal) < 0.0;
-        let normal = if face { outward_normal } else { -outward_normal };
+        let normal = if face {
+            outward_normal
+        } else {
+            -outward_normal
+        };
         HitRecord {
             t,
             p,

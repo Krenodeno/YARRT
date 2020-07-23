@@ -51,7 +51,10 @@ impl Hitable for HitableList {
         let first = self.list[0].bounding_box(t0, t1);
 
         if let Some(b) = first {
-            let mut output_box = Aabb{min: b.min, max: b.max};
+            let mut output_box = Aabb {
+                min: b.min,
+                max: b.max,
+            };
             for hitable in &self.list {
                 match hitable.bounding_box(t0, t1) {
                     Some(b) => output_box = surrounding_box(&output_box, &b),

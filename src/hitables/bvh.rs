@@ -1,4 +1,4 @@
-use super::{Aabb, Hitable, HitableList, HitRecord, Ray, surrounding_box};
+use super::{surrounding_box, Aabb, HitRecord, Hitable, HitableList, Ray};
 
 use std::cmp::Ordering;
 use std::sync::Arc;
@@ -27,7 +27,7 @@ impl BVHNode {
             0 => box_x_compare,
             1 => box_y_compare,
             2 => box_z_compare,
-            _ => panic!()
+            _ => panic!(),
         };
 
         let object_span = objects.len();
@@ -37,8 +37,7 @@ impl BVHNode {
             2 => {
                 if let Ordering::Less = comparator(&objects[0], &objects[1]) {
                     (objects[0].clone(), objects[1].clone())
-                }
-                else {
+                } else {
                     (objects[1].clone(), objects[0].clone())
                 }
             }
@@ -53,7 +52,7 @@ impl BVHNode {
                 let mid = object_span / 2;
                 (
                     Arc::new(BVHNode::from(&sorted[..mid], time0, time1)) as Arc<dyn Hitable>,
-                    Arc::new(BVHNode::from(&sorted[mid..], time0, time1)) as Arc<dyn Hitable>
+                    Arc::new(BVHNode::from(&sorted[mid..], time0, time1)) as Arc<dyn Hitable>,
                 )
             }
         };
@@ -81,7 +80,9 @@ fn box_compare(a: &Arc<dyn Hitable>, b: &Arc<dyn Hitable>, axis: usize) -> Order
         eprintln!("Error: No Bounding box in BVHNode constrction.");
     }
 
-    box_a.unwrap().min[axis].partial_cmp(&box_b.unwrap().min[axis]).unwrap()
+    box_a.unwrap().min[axis]
+        .partial_cmp(&box_b.unwrap().min[axis])
+        .unwrap()
 }
 
 fn box_x_compare(a: &Arc<dyn Hitable>, b: &Arc<dyn Hitable>) -> Ordering {
@@ -104,7 +105,8 @@ impl Hitable for BVHNode {
 
         // This combinator return right node hit when left node isn't hit
         // or left node hit if left node is hit but right node isn't
-        self.left.hit(ray, t_min, t_max)
+        self.left
+            .hit(ray, t_min, t_max)
             .and_then(|h| self.right.hit(ray, t_min, h.t).or_else(|| Some(h)))
             .or_else(|| self.right.hit(ray, t_min, t_max))
     }

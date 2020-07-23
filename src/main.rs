@@ -1,82 +1,89 @@
-mod structs;
-mod hitables;
 mod cameras;
+mod hitables;
 mod materials;
+mod structs;
 
-use structs::*;
-use hitables::*;
 use cameras::*;
+use hitables::*;
 use materials::*;
+use structs::*;
 
 use rand::Rng;
-use std::sync::Arc;
 use std::sync::mpsc;
-use std::time::{Instant};
+use std::sync::Arc;
 use std::thread;
+use std::time::Instant;
 
 /// Generate a random scene with 484 little random spheres,
 /// 3 bigger spheres in center, and a spheric ground.
 fn random_scene() -> HitableList {
     let mut world = HitableList::new();
 
-    world.push(Arc::new(Sphere{
+    world.push(Arc::new(Sphere {
         center: Vec3::new(0.0, -1000.0, 0.0),
         radius: 1000.0,
-        material: Arc::new(Lambertian{albedo: Vec3::new(0.5, 0.5, 0.5)}),
+        material: Arc::new(Lambertian {
+            albedo: Vec3::new(0.5, 0.5, 0.5),
+        }),
     }));
 
     for a in -11..11 {
         for b in -11..11 {
             let choose_mat = rand::thread_rng().gen::<f64>();
-            let center = Vec3::new(f64::from(a) + 0.9 * rand::thread_rng().gen::<f64>(), 0.2, f64::from(b) + 0.9 * rand::thread_rng().gen::<f64>());
+            let center = Vec3::new(
+                f64::from(a) + 0.9 * rand::thread_rng().gen::<f64>(),
+                0.2,
+                f64::from(b) + 0.9 * rand::thread_rng().gen::<f64>(),
+            );
             if (center - Vec3::new(4.0, 0.2, 0.0)).length() > 0.9 {
                 if choose_mat < 0.8 {
                     // Diffuse
                     let albedo = Vec3::random() * Vec3::random();
-                    world.push(Arc::new(MovingSphere{
+                    world.push(Arc::new(MovingSphere {
                         center0: center,
-                        center1: center + Vec3::new(0.0, 0.5 * rand::thread_rng().gen::<f64>(), 0.0),
+                        center1: center
+                            + Vec3::new(0.0, 0.5 * rand::thread_rng().gen::<f64>(), 0.0),
                         time0: 0.0,
                         time1: 1.0,
                         radius: 0.2,
-                        material: Arc::new(Lambertian{albedo}),
+                        material: Arc::new(Lambertian { albedo }),
                     }));
-                }
-                else if choose_mat < 0.95 {
+                } else if choose_mat < 0.95 {
                     // Metal
                     let albedo = Vec3::random_range(0.5, 1.0);
                     let fuzz = rand::thread_rng().gen_range(0.0, 0.5);
-                    world.push(Arc::new(Sphere{
+                    world.push(Arc::new(Sphere {
                         center,
                         radius: 0.2,
                         material: Arc::new(Metal::new(albedo, fuzz)),
                     }));
-                }
-                else {
+                } else {
                     // Glass
-                    world.push(Arc::new(Sphere{
+                    world.push(Arc::new(Sphere {
                         center,
                         radius: 0.2,
-                        material: Arc::new(Dielectric{ref_idx: 1.5}),
+                        material: Arc::new(Dielectric { ref_idx: 1.5 }),
                     }));
                 }
             }
         }
     }
 
-    world.push(Arc::new(Sphere{
+    world.push(Arc::new(Sphere {
         center: Vec3::new(0.0, 1.0, 0.0),
         radius: 1.0,
-        material: Arc::new(Dielectric{ref_idx: 1.5}),
+        material: Arc::new(Dielectric { ref_idx: 1.5 }),
     }));
 
-    world.push(Arc::new(Sphere{
+    world.push(Arc::new(Sphere {
         center: Vec3::new(-4.0, 1.0, 0.0),
         radius: 1.0,
-        material: Arc::new(Lambertian{albedo: Vec3::new(0.4, 0.2, 0.1)}),
+        material: Arc::new(Lambertian {
+            albedo: Vec3::new(0.4, 0.2, 0.1),
+        }),
     }));
 
-    world.push(Arc::new(Sphere{
+    world.push(Arc::new(Sphere {
         center: Vec3::new(4.0, 1.0, 0.0),
         radius: 1.0,
         material: Arc::new(Metal::new(Vec3::new(0.7, 0.6, 0.5), 0.0)),
@@ -96,11 +103,11 @@ fn color(ray: &Ray, world: &dyn Hitable, depth: u32) -> Vec3 {
             let res = rec.material.scatter(&ray, &rec);
             if let Some((attenuation, scattered)) = res {
                 if depth != 0 {
-                    return attenuation * color(&scattered, world, depth-1);
+                    return attenuation * color(&scattered, world, depth - 1);
                 }
             }
             Vec3::default()
-        },
+        }
         None => {
             // sky color
             let unit_direction = unit_vector(ray.direction());
@@ -111,7 +118,7 @@ fn color(ray: &Ray, world: &dyn Hitable, depth: u32) -> Vec3 {
 }
 
 fn gamma(color: Vec3) -> Vec3 {
-    Vec3{
+    Vec3 {
         x: color.x.sqrt(),
         y: color.y.sqrt(),
         z: color.z.sqrt(),
@@ -119,7 +126,13 @@ fn gamma(color: Vec3) -> Vec3 {
 }
 
 /// Dispatch ray-tracing algorithm on several threads to create an image of the current scene
-fn render(image_width: u32, image_height: u32, sample_per_pixel: u32, world: HitableList, camera: Arc<dyn Camera>) -> Image {
+fn render(
+    image_width: u32,
+    image_height: u32,
+    sample_per_pixel: u32,
+    world: HitableList,
+    camera: Arc<dyn Camera>,
+) -> Image {
     let max_depth: u32 = 50;
     let thread_count = 4;
 
@@ -136,13 +149,11 @@ fn render(image_width: u32, image_height: u32, sample_per_pixel: u32, world: Hit
     let bvh = BVHNode::new(&world, 0.0, 0.1);
 
     for id in 0..thread_count {
-
-        let chunksize =
-            if id < tougher_threads {
-                lines_per_thread + 1
-            } else {
-                lines_per_thread
-            };
+        let chunksize = if id < tougher_threads {
+            lines_per_thread + 1
+        } else {
+            lines_per_thread
+        };
 
         let camera = camera.clone();
         let lines = lines.clone();
@@ -207,14 +218,30 @@ fn main() {
     let up = Vec3::new(0.0, 1.0, 0.0);
     let dist_to_focus = 10.0;
     let aperture = 0.1;
-    let cam = ThinLensCamera::new_look_at(lookfrom, lookat, up, 20.0, aspect_ratio, aperture, dist_to_focus, 0.0, 1.0);
+    let cam = ThinLensCamera::new_look_at(
+        lookfrom,
+        lookat,
+        up,
+        20.0,
+        aspect_ratio,
+        aperture,
+        dist_to_focus,
+        0.0,
+        1.0,
+    );
 
     // Create a scene full of random spheres
     let world = random_scene();
 
     let before = Instant::now();
 
-    let image = render(image_width, image_height, sample_per_pixel, world, Arc::from(cam));
+    let image = render(
+        image_width,
+        image_height,
+        sample_per_pixel,
+        world,
+        Arc::from(cam),
+    );
 
     eprintln!("Done in {}secs!           ", before.elapsed().as_secs());
 
