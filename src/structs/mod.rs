@@ -1,4 +1,5 @@
 pub mod color;
+pub use color::*;
 mod ray;
 pub use ray::*;
 mod vec3;
