@@ -7,7 +7,7 @@ pub struct Aabb {
 }
 
 impl Aabb {
-    pub fn hit (&self, ray: &Ray, t_min: f64, t_max: f64) -> bool {
+    pub fn hit(&self, ray: &Ray, t_min: f64, t_max: f64) -> bool {
         let origin = ray.origin();
         let direction = ray.direction();
         for i in 0..3 {
@@ -33,12 +33,17 @@ pub fn surrounding_box(box0: &Aabb, box1: &Aabb) -> Aabb {
     let small = Vec3::new(
         box0.min.x.min(box1.min.x),
         box0.min.y.min(box1.min.y),
-        box0.min.z.min(box1.min.z));
+        box0.min.z.min(box1.min.z),
+    );
 
     let big = Vec3::new(
         box0.max.x.max(box1.max.x),
         box0.max.y.max(box1.max.y),
-        box0.max.z.max(box1.max.z));
+        box0.max.z.max(box1.max.z),
+    );
 
-    Aabb {min: small, max: big}
+    Aabb {
+        min: small,
+        max: big,
+    }
 }

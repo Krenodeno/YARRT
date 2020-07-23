@@ -1,4 +1,3 @@
-
 pub enum PixelFormat {
     RGBU8,
 }
@@ -18,7 +17,7 @@ impl Image {
     pub fn new(width: u32, height: u32, format: PixelFormat) -> Image {
         let p: Vec<f64> = Vec::with_capacity((width * height) as usize);
 
-        Image{
+        Image {
             width,
             height,
             format,
@@ -60,7 +59,7 @@ pub trait Serializable {
 impl Serializable for Image {
     fn encode(&self, format: ImageFormat) -> String {
         match format {
-            ImageFormat::PPM => encode_ppm(&self)
+            ImageFormat::PPM => encode_ppm(&self),
         }
     }
 }
@@ -72,7 +71,6 @@ fn encode_ppm(image: &Image) -> String {
     img.push_str(" ");
     img.push_str(&image.height.to_string());
     img.push_str("\n255\n");
-
 
     let mut encode_one_pixel = match image.format {
         PixelFormat::RGBU8 => |r: &f64, g: &f64, b: &f64| {
@@ -86,14 +84,14 @@ fn encode_ppm(image: &Image) -> String {
     };
 
     let mut subpixel = image.get_pixels().iter();
-    for _i in 0..image.width*image.height {
+    for _i in 0..image.width * image.height {
         match image.format {
             PixelFormat::RGBU8 => {
                 let r = subpixel.next().unwrap();
                 let g = subpixel.next().unwrap();
                 let b = subpixel.next().unwrap();
                 encode_one_pixel(r, g, b)
-            },
+            }
         }
     }
 

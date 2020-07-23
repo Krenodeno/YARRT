@@ -1,12 +1,12 @@
-use super::Material;
 use super::reflect;
-use crate::structs::{dot, Ray, unit_vector, Vec3};
+use super::Material;
 use crate::hitables::HitRecord;
+use crate::structs::{dot, unit_vector, Ray, Vec3};
 
 use rand::Rng;
 
 #[derive(Debug, Copy, Clone)]
-pub struct Dielectric{
+pub struct Dielectric {
     pub ref_idx: f64,
 }
 
@@ -27,7 +27,7 @@ fn schlick(cosine: f64, ref_idx: f64) -> f64 {
 impl Material for Dielectric {
     fn scatter(&self, ray: &Ray, rec: &HitRecord) -> Option<(Vec3, Ray)> {
         let attenuation = Vec3::new(1.0, 1.0, 1.0);
-        
+
         let etai_over_etat = if rec.front_face {
             1.0 / self.ref_idx
         } else {

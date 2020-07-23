@@ -6,7 +6,7 @@ use std::sync::Arc;
 pub struct Sphere {
     pub center: Vec3,
     pub radius: f64,
-    pub material: Arc<dyn Material>
+    pub material: Arc<dyn Material>,
 }
 
 impl Hitable for Sphere {
