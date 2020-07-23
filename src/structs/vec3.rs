@@ -12,10 +12,10 @@ use std::ops::SubAssign;
 use std::ops::Index;
 use std::ops::IndexMut;
 
-use std::fmt;
 use rand::Rng;
+use std::fmt;
 
-#[derive(Copy, Clone, Debug, Default)]
+#[derive(Copy, Clone, Debug, Default, PartialEq)]
 pub struct Vec3 {
     pub x: f64,
     pub y: f64,
@@ -24,17 +24,19 @@ pub struct Vec3 {
 
 impl fmt::Display for Vec3 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{} {} {}", (255.99 * self.x) as u8, (255.99 * self.y) as u8, (255.99 * self.z) as u8)
+        write!(
+            f,
+            "{} {} {}",
+            (255.99 * self.x) as u8,
+            (255.99 * self.y) as u8,
+            (255.99 * self.z) as u8
+        )
     }
 }
 
 impl Vec3 {
     pub fn new(x: f64, y: f64, z: f64) -> Vec3 {
-        Vec3 {
-            x,
-            y,
-            z,
-        }
+        Vec3 { x, y, z }
     }
 
     pub fn random() -> Vec3 {
@@ -369,9 +371,9 @@ impl MulAssign<f64> for Vec3 {
 // v2 -= v1
 impl SubAssign for Vec3 {
     fn sub_assign(&mut self, other: Vec3) {
-            self.x -= other.x;
-            self.y -= other.y;
-            self.z -= other.z;
+        self.x -= other.x;
+        self.y -= other.y;
+        self.z -= other.z;
     }
 }
 
@@ -382,7 +384,7 @@ impl Index<usize> for Vec3 {
             0 => &self.x,
             1 => &self.y,
             2 => &self.z,
-            _ => panic!("requested index does not exist")
+            _ => panic!("requested index does not exist"),
         }
     }
 }
@@ -393,7 +395,7 @@ impl IndexMut<usize> for Vec3 {
             0 => &mut self.x,
             1 => &mut self.y,
             2 => &mut self.y,
-            _ => panic!("requested index does not exist")
+            _ => panic!("requested index does not exist"),
         }
     }
 }
