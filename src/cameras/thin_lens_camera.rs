@@ -1,6 +1,6 @@
 use super::Camera;
 
-use crate::structs::{Ray, Vec3, unit_vector, cross, random_in_unit_disk};
+use crate::structs::{cross, random_in_unit_disk, unit_vector, Ray, Vec3};
 
 use rand::Rng;
 
@@ -19,7 +19,17 @@ pub struct ThinLensCamera {
 }
 
 impl ThinLensCamera {
-    pub fn new_look_at(lookfrom: Vec3, lookat: Vec3, up: Vec3, vfov: f64, aspect: f64, aperture: f64, focus_dist: f64, t0: f64, t1: f64) -> ThinLensCamera {
+    pub fn new_look_at(
+        lookfrom: Vec3,
+        lookat: Vec3,
+        up: Vec3,
+        vfov: f64,
+        aspect: f64,
+        aperture: f64,
+        focus_dist: f64,
+        t0: f64,
+        t1: f64,
+    ) -> ThinLensCamera {
         let theta = vfov.to_radians();
         let half_height = (theta / 2.0).tan();
         let half_width = aspect * half_height;
@@ -30,7 +40,10 @@ impl ThinLensCamera {
 
         ThinLensCamera {
             origin: lookfrom,
-            lower_left_corner: lookfrom - half_width*focus_dist*u - half_height*focus_dist*v - focus_dist*w,
+            lower_left_corner: lookfrom
+                - half_width * focus_dist * u
+                - half_height * focus_dist * v
+                - focus_dist * w,
             horizontal: 2.0 * half_width * focus_dist * u,
             vertical: 2.0 * half_height * focus_dist * v,
             u,
@@ -47,6 +60,10 @@ impl Camera for ThinLensCamera {
     fn get_ray(&self, s: f64, t: f64) -> Ray {
         let rd = self.lens_radius * random_in_unit_disk();
         let offset = self.u * rd.x + self.v * rd.y;
-        Ray::new(self.origin + offset, self.lower_left_corner + s*self.horizontal + t*self.vertical - self.origin - offset, rand::thread_rng().gen_range(self.time0, self.time1))
+        Ray::new(
+            self.origin + offset,
+            self.lower_left_corner + s * self.horizontal + t * self.vertical - self.origin - offset,
+            rand::thread_rng().gen_range(self.time0, self.time1),
+        )
     }
 }

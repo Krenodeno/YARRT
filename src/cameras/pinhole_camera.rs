@@ -1,5 +1,5 @@
-use crate::structs::{Ray, Vec3, unit_vector, cross};
 use super::Camera;
+use crate::structs::{cross, unit_vector, Ray, Vec3};
 
 use rand::Rng;
 
@@ -14,7 +14,15 @@ pub struct PinholeCamera {
 }
 
 impl PinholeCamera {
-    pub fn new_look_at(lookfrom: Vec3, lookat: Vec3, up: Vec3, vfov: f64, aspect: f64, t0: f64, t1: f64) -> PinholeCamera {
+    pub fn new_look_at(
+        lookfrom: Vec3,
+        lookat: Vec3,
+        up: Vec3,
+        vfov: f64,
+        aspect: f64,
+        t0: f64,
+        t1: f64,
+    ) -> PinholeCamera {
         let theta = vfov.to_radians();
         let half_height = (theta / 2.0).tan();
         let half_width = aspect * half_height;
@@ -25,7 +33,7 @@ impl PinholeCamera {
 
         PinholeCamera {
             origin: lookfrom,
-            lower_left_corner: lookfrom - half_width*u - half_height*v - w,
+            lower_left_corner: lookfrom - half_width * u - half_height * v - w,
             horizontal: 2.0 * half_width * u,
             vertical: 2.0 * half_height * v,
             time0: t0,
@@ -62,6 +70,10 @@ impl PinholeCamera {
 
 impl Camera for PinholeCamera {
     fn get_ray(&self, u: f64, v: f64) -> Ray {
-        Ray::new(self.origin, self.lower_left_corner + u*self.horizontal + v*self.vertical - self.origin, rand::thread_rng().gen_range(self.time0, self.time1))
+        Ray::new(
+            self.origin,
+            self.lower_left_corner + u * self.horizontal + v * self.vertical - self.origin,
+            rand::thread_rng().gen_range(self.time0, self.time1),
+        )
     }
 }

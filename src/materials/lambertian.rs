@@ -1,7 +1,7 @@
+use super::random_unit_vector;
 use super::Material;
-use super::{random_unit_vector};
-use crate::structs::{Ray, Vec3};
 use crate::hitables::HitRecord;
+use crate::structs::{Ray, Vec3};
 
 #[derive(Debug, Copy, Clone)]
 pub struct Lambertian {
