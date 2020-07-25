@@ -5,6 +5,8 @@ use std::sync::Arc;
 
 pub struct HitRecord {
     pub t: f64,
+    pub u: f64,
+    pub v: f64,
     pub p: Vec3,
     pub normal: Vec3,
     pub front_face: bool,
@@ -14,6 +16,8 @@ pub struct HitRecord {
 impl HitRecord {
     pub fn new(
         t: f64,
+        u: f64,
+        v: f64,
         p: Vec3,
         ray: &Ray,
         outward_normal: Vec3,
@@ -27,6 +31,8 @@ impl HitRecord {
         };
         HitRecord {
             t,
+            u,
+            v,
             p,
             front_face: face,
             normal,

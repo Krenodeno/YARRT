@@ -1,11 +1,13 @@
 use super::random_unit_vector;
 use super::Material;
 use crate::hitables::HitRecord;
-use crate::structs::{Ray, Vec3};
+use crate::structs::{Ray, Texture, Vec3};
 
-#[derive(Debug, Copy, Clone)]
+use std::sync::Arc;
+
+#[derive(Clone)]
 pub struct Lambertian {
-    pub albedo: Vec3,
+    pub albedo: Arc<dyn Texture>,
 }
 
 impl Material for Lambertian {
@@ -13,6 +15,6 @@ impl Material for Lambertian {
         // Different diffuse distributions possibles, see materials/mod.rs
         let scatter_direction = rec.normal + random_unit_vector();
         let scattered = Ray::new(rec.p, scatter_direction, ray.time());
-        Some((self.albedo, scattered))
+        Some((self.albedo.value(rec.u, rec.v, &rec.p), scattered))
     }
 }

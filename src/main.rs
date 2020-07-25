@@ -6,7 +6,6 @@ mod structs;
 use cameras::*;
 use hitables::*;
 use materials::*;
-use structs::*;
 
 use rand::Rng;
 use std::sync::mpsc;
@@ -19,11 +18,21 @@ use std::time::Instant;
 fn random_scene() -> HitableList {
     let mut world = HitableList::new();
 
+    let mut texture_manager = ResourceManager::new();
+
+    let odd_color = TextureConfig {
+        kind: TextureKind::Constant(Color::new(51, 77, 26)),
+    };
+    let even_color = TextureConfig {
+        kind: TextureKind::Constant(Color::new(230, 230, 230)),
+    };
     world.push(Arc::new(Sphere {
         center: Vec3::new(0.0, -1000.0, 0.0),
         radius: 1000.0,
         material: Arc::new(Lambertian {
-            albedo: Vec3::new(0.5, 0.5, 0.5),
+            albedo: texture_manager.get_resource(&TextureConfig {
+                kind: TextureKind::Checker(&odd_color, &even_color),
+            }),
         }),
     }));
 
@@ -39,6 +48,13 @@ fn random_scene() -> HitableList {
                 if choose_mat < 0.8 {
                     // Diffuse
                     let albedo = Vec3::random() * Vec3::random();
+                    let texture = texture_manager.get_resource(&TextureConfig {
+                        kind: TextureKind::Constant(Color::new(
+                            (albedo.x * 255.99) as u8,
+                            (albedo.y * 255.99) as u8,
+                            (albedo.z * 255.99) as u8,
+                        )),
+                    });
                     world.push(Arc::new(MovingSphere {
                         center0: center,
                         center1: center
@@ -46,7 +62,7 @@ fn random_scene() -> HitableList {
                         time0: 0.0,
                         time1: 1.0,
                         radius: 0.2,
-                        material: Arc::new(Lambertian { albedo }),
+                        material: Arc::new(Lambertian { albedo: texture }),
                     }));
                 } else if choose_mat < 0.95 {
                     // Metal
@@ -79,7 +95,7 @@ fn random_scene() -> HitableList {
         center: Vec3::new(-4.0, 1.0, 0.0),
         radius: 1.0,
         material: Arc::new(Lambertian {
-            albedo: Vec3::new(0.4, 0.2, 0.1),
+            albedo: Arc::new(SolidColor::new(Vec3::new(0.4, 0.2, 0.1))),
         }),
     }));
 

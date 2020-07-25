@@ -17,6 +17,14 @@ impl MovingSphere {
         self.center0
             + ((time - self.time0) / (self.time1 - self.time0)) * (self.center1 - self.center0)
     }
+
+    pub fn get_sphere_uv(p: &Vec3) -> (f64, f64) {
+        let phi = p.z.atan2(p.x);
+        let theta = p.y.asin();
+        let u = 1.0_f64 - (phi + std::f64::consts::PI) / 2.0_f64 * std::f64::consts::PI;
+        let v = (theta + std::f64::consts::PI / 2.0_f64) / std::f64::consts::PI;
+        (u, v)
+    }
 }
 
 impl Hitable for MovingSphere {
@@ -32,15 +40,17 @@ impl Hitable for MovingSphere {
             let temp = (-half_b - root) / a;
             if temp < t_max && temp > t_min {
                 let p = ray.point_at(temp);
+                let (u, v) = MovingSphere::get_sphere_uv(&p);
                 let outward_normal = (p - self.center(ray.time())) / self.radius;
-                let rec = HitRecord::new(temp, p, ray, outward_normal, self.material.clone());
+                let rec = HitRecord::new(temp, u, v, p, ray, outward_normal, self.material.clone());
                 return Some(rec);
             }
             let temp = (-half_b + root) / a;
             if temp < t_max && temp > t_min {
                 let p = ray.point_at(temp);
+                let (u, v) = MovingSphere::get_sphere_uv(&p);
                 let outward_normal = (p - self.center(ray.time())) / self.radius;
-                let rec = HitRecord::new(temp, p, ray, outward_normal, self.material.clone());
+                let rec = HitRecord::new(temp, u, v, p, ray, outward_normal, self.material.clone());
                 return Some(rec);
             }
         }
