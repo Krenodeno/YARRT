@@ -9,6 +9,16 @@ pub struct Sphere {
     pub material: Arc<dyn Material>,
 }
 
+impl Sphere {
+    pub fn get_sphere_uv(p: &Vec3) -> (f64, f64) {
+        let phi = p.z.atan2(p.x);
+        let theta = p.y.asin();
+        let u = 1.0_f64 - (phi + std::f64::consts::PI) / 2.0_f64 * std::f64::consts::PI;
+        let v = (theta + std::f64::consts::PI / 2.0_f64) / std::f64::consts::PI;
+        (u, v)
+    }
+}
+
 impl Hitable for Sphere {
     fn hit(&self, ray: &Ray, t_min: f64, t_max: f64) -> Option<HitRecord> {
         let oc = ray.origin() - self.center;
@@ -23,14 +33,16 @@ impl Hitable for Sphere {
             if temp < t_max && temp > t_min {
                 let p = ray.point_at(temp);
                 let outward_normal = (p - self.center) / self.radius;
-                let rec = HitRecord::new(temp, p, ray, outward_normal, self.material.clone());
+                let (u, v) = Sphere::get_sphere_uv(&((p - self.center) / self.radius));
+                let rec = HitRecord::new(temp, u, v, p, ray, outward_normal, self.material.clone());
                 return Some(rec);
             }
             let temp = (-half_b + root) / a;
             if temp < t_max && temp > t_min {
                 let p = ray.point_at(temp);
                 let outward_normal = (p - self.center) / self.radius;
-                let rec = HitRecord::new(temp, p, ray, outward_normal, self.material.clone());
+                let (u, v) = Sphere::get_sphere_uv(&((p - self.center) / self.radius));
+                let rec = HitRecord::new(temp, u, v, p, ray, outward_normal, self.material.clone());
                 return Some(rec);
             }
         }

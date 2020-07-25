@@ -13,6 +13,7 @@ use std::ops::Index;
 use std::ops::IndexMut;
 
 use rand::Rng;
+use std::cmp::PartialEq;
 use std::fmt;
 
 #[derive(Copy, Clone, Debug, Default, PartialEq)]
@@ -343,10 +344,9 @@ impl DivAssign for Vec3 {
 // v2 /= f
 impl DivAssign<f64> for Vec3 {
     fn div_assign(&mut self, other: f64) {
-        let k: f64 = 1.0 / other;
-        self.x *= k;
-        self.y *= k;
-        self.z *= k;
+        self.x /= other;
+        self.y /= other;
+        self.z /= other;
     }
 }
 

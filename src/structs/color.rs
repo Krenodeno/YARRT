@@ -6,15 +6,15 @@ pub struct Color {
 }
 
 impl Color {
-    fn new(r: u8, g: u8, b: u8) -> Color {
+    pub fn new(r: u8, g: u8, b: u8) -> Color {
         Color { r, g, b }
     }
 
-    fn black() -> Color {
+    pub fn black() -> Color {
         Color { r: 0, g: 0, b: 0 }
     }
 
-    fn white() -> Color {
+    pub fn white() -> Color {
         Color {
             r: 255,
             g: 255,
