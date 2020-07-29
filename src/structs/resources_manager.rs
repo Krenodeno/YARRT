@@ -1,18 +1,24 @@
 use std::collections::HashMap;
 use std::sync::{Arc, Weak};
 
-use super::texture::{CheckerTexture, SolidColor, Texture, TextureConfig, TextureKind};
-use super::Vec3;
+pub trait Resource {}
+
+pub trait ResourceConfig: std::cmp::Eq + std::hash::Hash + Sized + Clone {
+    type AssociatedResource: ?Sized;
+
+    fn create_resource(&self, res_mgr: &mut ResourceManager<Self>)
+        -> Arc<Self::AssociatedResource>;
+}
 
 /// Used to hold a reference on a type of resource to be read by multiple
 /// users.
 /// K is the Configuration type of V representing its parameters as an unique
 /// instance
-pub struct ResourceManager<'a> {
-    pub resources: HashMap<TextureConfig<'a>, Weak<dyn Texture>>,
+pub struct ResourceManager<K: ResourceConfig> {
+    pub resources: HashMap<K, Weak<<K as ResourceConfig>::AssociatedResource>>,
 }
 
-impl<'a> ResourceManager<'a> {
+impl<'a, K: ResourceConfig> ResourceManager<K> {
     pub fn new() -> Self {
         ResourceManager {
             resources: HashMap::new(),
@@ -22,7 +28,7 @@ impl<'a> ResourceManager<'a> {
     /// Instanciate the demanded resource if possible, return an Arc on it if
     /// instanciation is a success or a similar resource already exist.
     /// Can panic if no resource can be created with specified configuration.
-    pub fn get_resource(&mut self, config: &TextureConfig<'a>) -> Arc<dyn Texture> {
+    pub fn get_resource(&mut self, config: &K) -> Arc<<K as ResourceConfig>::AssociatedResource> {
         match self.resources.get(&config) {
             Some(t) => t
                 .upgrade()
@@ -34,29 +40,15 @@ impl<'a> ResourceManager<'a> {
 
     /// Try to load a resource and return it.
     /// It need the resource type K to implement Resource Trait.
-    fn load_from_config(&mut self, config: &TextureConfig<'a>) -> Option<Arc<dyn Texture>> {
-        let res: Arc<dyn Texture> = match config.kind {
-            TextureKind::Constant(c) => {
-                let v: Vec3 = Vec3::new(
-                    c.r as f64 / 255.99,
-                    c.g as f64 / 255.99,
-                    c.b as f64 / 255.99,
-                );
-                Arc::new(SolidColor::new(v))
-            }
-            TextureKind::Checker(odd, even) => {
-                let odd_texture = self.get_resource(odd);
-                let even_texture = self.get_resource(even);
-                Arc::new(CheckerTexture::new(odd_texture, even_texture))
-            }
-            _ => return None,
-        };
+    fn load_from_config(
+        &mut self,
+        config: &K,
+    ) -> Option<Arc<<K as ResourceConfig>::AssociatedResource>> {
+        let res = config.create_resource(self);
 
         // add it to the managed resources
-        let copy = *config;
+        let copy = config.clone();
         self.resources.insert(copy, Arc::downgrade(&res));
         Some(res)
     }
 }
-
-pub trait Resource {}

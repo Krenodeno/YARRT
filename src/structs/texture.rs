@@ -1,4 +1,4 @@
-use super::{Color, Resource, Vec3};
+use super::{Color, Resource, ResourceConfig, ResourceManager, Vec3};
 
 use std::hash::Hash;
 use std::path::Path;
@@ -20,6 +20,32 @@ pub enum TextureKind<'a> {
 #[derive(Debug, Copy, Clone, PartialEq, Hash, Eq)]
 pub struct TextureConfig<'a> {
     pub kind: TextureKind<'a>,
+}
+
+impl<'a> ResourceConfig for TextureConfig<'a> {
+    type AssociatedResource = dyn Texture;
+
+    fn create_resource(
+        &self,
+        res_mgr: &mut ResourceManager<Self>,
+    ) -> Arc<Self::AssociatedResource> {
+        match self.kind {
+            TextureKind::Constant(c) => {
+                let v: Vec3 = Vec3::new(
+                    c.r as f64 / 255.99,
+                    c.g as f64 / 255.99,
+                    c.b as f64 / 255.99,
+                );
+                Arc::new(SolidColor::new(v))
+            }
+            TextureKind::Checker(odd, even) => {
+                let odd_texture = res_mgr.get_resource(odd);
+                let even_texture = res_mgr.get_resource(even);
+                Arc::new(CheckerTexture::new(odd_texture, even_texture))
+            }
+            _ => unimplemented!(),
+        }
+    }
 }
 
 // Solid Color
