@@ -149,7 +149,7 @@ fn render(
     world: HitableList,
     camera: Arc<dyn Camera>,
 ) -> Image {
-    let max_depth: u32 = 50;
+    let max_depth: u32 = 10;
     let thread_count = 4;
 
     let mut handles = vec![];
