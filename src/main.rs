@@ -108,6 +108,41 @@ fn random_scene() -> HitableList {
     world
 }
 
+fn two_sphers() -> HitableList {
+    let mut world = HitableList::new();
+
+    let mut texture_manager = ResourceManager::new();
+
+    let odd_color = TextureConfig {
+        kind: TextureKind::Constant(Color::new(51, 77, 26)),
+    };
+    let even_color = TextureConfig {
+        kind: TextureKind::Constant(Color::new(230, 230, 230)),
+    };
+
+    world.push(Arc::new(Sphere {
+        center: Vec3::new(0.0, -10.0, 0.0),
+        radius: 10.0,
+        material: Arc::new(Lambertian {
+            albedo: texture_manager.get_resource(&TextureConfig {
+                kind: TextureKind::Checker(&odd_color, &even_color),
+            }),
+        }),
+    }));
+
+    world.push(Arc::new(Sphere {
+        center: Vec3::new(0.0, 10.0, 0.0),
+        radius: 10.0,
+        material: Arc::new(Lambertian {
+            albedo: texture_manager.get_resource(&TextureConfig {
+                kind: TextureKind::Checker(&odd_color, &even_color),
+            }),
+        }),
+    }));
+
+    return world;
+}
+
 /// Compute the color of the current ray
 /// in the world of hitables.
 /// This function run recursively until maximum number of recursions
@@ -228,26 +263,39 @@ fn main() {
     let image_height: u32 = 225;
     let sample_per_pixel: u32 = 100;
 
+    // Create a scene
+    let scene = 1;
+    let (world, lookfrom, lookat, vfov, aperture) = match scene {
+        0 => (
+            random_scene(),
+            Vec3::new(13.0, 2.0, 3.0),
+            Vec3::default(),
+            20.0,
+            0.1,
+        ),
+        1 | _ => (
+            two_sphers(),
+            Vec3::new(13.0, 2.0, 3.0),
+            Vec3::default(),
+            20.0,
+            0.0,
+        ),
+    };
+
     let aspect_ratio = f64::from(image_width) / f64::from(image_height);
-    let lookfrom = Vec3::new(13.0, 2.0, 3.0);
-    let lookat = Vec3::default();
     let up = Vec3::new(0.0, 1.0, 0.0);
     let dist_to_focus = 10.0;
-    let aperture = 0.1;
     let cam = ThinLensCamera::new_look_at(
         lookfrom,
         lookat,
         up,
-        20.0,
+        vfov,
         aspect_ratio,
         aperture,
         dist_to_focus,
         0.0,
         1.0,
     );
-
-    // Create a scene full of random spheres
-    let world = random_scene();
 
     let before = Instant::now();
 
