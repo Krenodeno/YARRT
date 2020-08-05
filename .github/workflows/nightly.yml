@@ -9,6 +9,13 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - uses: actions-rs/toolchain@v1
+        with:
+            toolchain: stable
+            default: minimal
+            components: clippy
+            override: true
+
       - name: Cache release
         uses: actions/cache@v1
         env:
@@ -19,8 +26,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-build-
 
-      - name: Lint
-        run: cargo clippy --release
+      - uses: actions-rs/clippy-check@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          args: --all-features
 
   build:
     strategy:
@@ -30,6 +39,12 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - uses: actions-rs/toolchain@v1
+        with:
+            toolchain: stable
+            default: minimal
+            override: true
+
       - name: Cache release
         uses: actions/cache@v1
         env:
@@ -40,8 +55,11 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-build-
 
-      - name: Build
-        run: cargo build --release --verbose
+      - name: Build an optimized executable
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --release --all-features
 
       - name: Save Linux artifact
         if: runner.os == 'Linux'
@@ -61,6 +79,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+
+      - uses: actions-rs/toolchain@v1
+        with:
+            toolchain: stable
+            default: minimal
+            components: clippy
+            override: true
 
       - name: Cache release
         uses: actions/cache@v1
