@@ -108,7 +108,7 @@ fn random_scene() -> HitableList {
     world
 }
 
-fn two_sphers() -> HitableList {
+fn two_spheres() -> HitableList {
     let mut world = HitableList::new();
 
     let mut texture_manager = ResourceManager::new();
@@ -136,6 +136,34 @@ fn two_sphers() -> HitableList {
         material: Arc::new(Lambertian {
             albedo: texture_manager.get_resource(&TextureConfig {
                 kind: TextureKind::Checker(&odd_color, &even_color),
+            }),
+        }),
+    }));
+
+    return world;
+}
+
+fn two_perlin_spheres() -> HitableList {
+    let mut world = HitableList::new();
+
+    let mut texture_manager = ResourceManager::new();
+
+    world.push(Arc::new(Sphere {
+        center: Vec3::new(0.0, -1000.0, 0.0),
+        radius: 1000.0,
+        material: Arc::new(Lambertian {
+            albedo: texture_manager.get_resource(&TextureConfig {
+                kind: TextureKind::Perlin(256),
+            }),
+        }),
+    }));
+
+    world.push(Arc::new(Sphere {
+        center: Vec3::new(0.0, 2.0, 0.0),
+        radius: 2.0,
+        material: Arc::new(Lambertian {
+            albedo: texture_manager.get_resource(&TextureConfig {
+                kind: TextureKind::Perlin(256),
             }),
         }),
     }));
@@ -264,7 +292,7 @@ fn main() {
     let sample_per_pixel: u32 = 100;
 
     // Create a scene
-    let scene = 1;
+    let scene = 2;
     let (world, lookfrom, lookat, vfov, aperture) = match scene {
         0 => (
             random_scene(),
@@ -273,8 +301,15 @@ fn main() {
             20.0,
             0.1,
         ),
-        1 | _ => (
-            two_sphers(),
+        1 => (
+            two_spheres(),
+            Vec3::new(13.0, 2.0, 3.0),
+            Vec3::default(),
+            20.0,
+            0.0,
+        ),
+        2 | _ => (
+            two_perlin_spheres(),
             Vec3::new(13.0, 2.0, 3.0),
             Vec3::default(),
             20.0,

@@ -1,4 +1,4 @@
-use super::{Color, Resource, ResourceConfig, ResourceManager, Vec3};
+use super::{Color, Perlin, Resource, ResourceConfig, ResourceManager, Vec3};
 
 use std::hash::Hash;
 use std::path::Path;
@@ -15,6 +15,7 @@ pub enum TextureKind<'a> {
     Constant(Color),
     Checker(&'a TextureConfig<'a>, &'a TextureConfig<'a>),
     FromFile(&'a Path),
+    Perlin(usize),
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Hash, Eq)]
@@ -43,6 +44,9 @@ impl<'a> ResourceConfig for TextureConfig<'a> {
                 let even_texture = res_mgr.get_resource(even);
                 Arc::new(CheckerTexture::new(odd_texture, even_texture))
             }
+            TextureKind::Perlin(c) => Arc::new(PerlinTexture {
+                noise: Perlin::new(c),
+            }),
             _ => unimplemented!(),
         }
     }
@@ -87,5 +91,17 @@ impl Texture for CheckerTexture {
         } else {
             self.even.value(u, v, &p)
         }
+    }
+}
+
+// Perlin Texture
+
+pub struct PerlinTexture {
+    noise: Perlin,
+}
+
+impl Texture for PerlinTexture {
+    fn value(&self, _u: f64, _v: f64, p: &Vec3) -> Vec3 {
+        Vec3::new(1.0, 1.0, 1.0) * self.noise.noise(&p)
     }
 }

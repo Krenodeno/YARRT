@@ -1,4 +1,4 @@
-pub mod color;
+mod color;
 pub use color::*;
 mod ray;
 pub use ray::*;
@@ -6,6 +6,8 @@ mod vec3;
 pub use vec3::*;
 mod image;
 pub use image::*;
+mod perlin;
+pub use perlin::Perlin;
 mod resources_manager;
 pub use resources_manager::*;
 mod texture;
