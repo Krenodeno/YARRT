@@ -26,9 +26,9 @@ impl Perlin {
     }
 
     pub fn noise(&self, point: &Vec3) -> f64 {
-        let i = (4 * point.x as usize) & 255;
-        let j = (4 * point.y as usize) & 255;
-        let k = (4 * point.z as usize) & 255;
+        let i = ((4.0 * point.x) as isize & 255) as usize;
+        let j = ((4.0 * point.y) as isize & 255) as usize;
+        let k = ((4.0 * point.z) as isize & 255) as usize;
 
         self.random_floats[self.perm_x[i] ^ self.perm_y[j] ^ self.perm_z[k]]
     }
