@@ -39,7 +39,7 @@ impl Perlin {
             values.push(i);
         }
         Perlin::permute(&mut values[..], point_count);
-        return values;
+        values
     }
 
     /// Executes `count` permutations on `ptr` randomly

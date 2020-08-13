@@ -140,7 +140,7 @@ fn two_spheres() -> HitableList {
         }),
     }));
 
-    return world;
+    world
 }
 
 fn two_perlin_spheres() -> HitableList {
@@ -168,7 +168,7 @@ fn two_perlin_spheres() -> HitableList {
         }),
     }));
 
-    return world;
+    world
 }
 
 /// Compute the color of the current ray
