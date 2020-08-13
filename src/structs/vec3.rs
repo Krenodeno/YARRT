@@ -14,9 +14,10 @@ use std::ops::IndexMut;
 
 use rand::Rng;
 use std::cmp::PartialEq;
+use std::cmp::PartialOrd;
 use std::fmt;
 
-#[derive(Copy, Clone, Debug, Default, PartialEq)]
+#[derive(Copy, Clone, Debug, Default, PartialEq, PartialOrd)]
 pub struct Vec3 {
     pub x: f64,
     pub y: f64,
