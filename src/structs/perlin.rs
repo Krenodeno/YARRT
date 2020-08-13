@@ -46,9 +46,7 @@ impl Perlin {
     fn permute(ptr: &mut [usize], count: usize) {
         for i in (1..count - 1).rev() {
             let target: usize = rand::thread_rng().gen_range(0, i);
-            let tmp = ptr[i];
-            ptr[i] = ptr[target];
-            ptr[target] = tmp;
+            ptr.swap(i, target);
         }
     }
 }
