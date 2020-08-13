@@ -26,11 +26,27 @@ impl Perlin {
     }
 
     pub fn noise(&self, point: &Vec3) -> f64 {
-        let i = ((4.0 * point.x) as isize & 255) as usize;
-        let j = ((4.0 * point.y) as isize & 255) as usize;
-        let k = ((4.0 * point.z) as isize & 255) as usize;
+        let i = point.x.floor();
+        let j = point.y.floor();
+        let k = point.z.floor();
 
-        self.random_floats[self.perm_x[i] ^ self.perm_y[j] ^ self.perm_z[k]]
+        let u = point.x - i;
+        let v = point.y - j;
+        let w = point.z - k;
+
+        let mut c = [[[0.0; 2]; 2]; 2];
+        for di in 0..2 {
+            for dj in 0..2 {
+                for dk in 0..2 {
+                    c[di][dj][dk] = self.random_floats[self.perm_x
+                        [((i as isize + di as isize) & 255) as usize]
+                        ^ self.perm_y[((j as isize + dj as isize) & 255) as usize]
+                        ^ self.perm_z[((k as isize + dk as isize) & 255) as usize]];
+                }
+            }
+        }
+
+        trilinear_interpolation(u, v, w, &c)
     }
 
     fn generate_permutations(capacity: usize, point_count: usize) -> Vec<usize> {
@@ -49,4 +65,23 @@ impl Perlin {
             ptr.swap(i, target);
         }
     }
+}
+
+pub fn trilinear_interpolation(u: f64, v: f64, w: f64, c: &[[[f64; 2]; 2]; 2]) -> f64 {
+    let mut acc = 0.0;
+    for i in 0..2 {
+        for j in 0..2 {
+            for k in 0..2 {
+                let i_f = i as f64;
+                let j_f = j as f64;
+                let k_f = k as f64;
+                acc += (i_f * u + (1.0 - i_f) * (1.0 - u))
+                    * (j_f * v + (1.0 - j_f) * (1.0 - v))
+                    * (k_f * w + (1.0 - k_f) * (1.0 - w))
+                    * c[i][j][k];
+            }
+        }
+    }
+
+    acc
 }
