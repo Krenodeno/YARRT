@@ -153,7 +153,7 @@ fn two_perlin_spheres() -> HitableList {
         radius: 1000.0,
         material: Arc::new(Lambertian {
             albedo: texture_manager.get_resource(&TextureConfig {
-                kind: TextureKind::Perlin(256),
+                kind: TextureKind::Perlin(256, 4),
             }),
         }),
     }));
@@ -163,7 +163,7 @@ fn two_perlin_spheres() -> HitableList {
         radius: 2.0,
         material: Arc::new(Lambertian {
             albedo: texture_manager.get_resource(&TextureConfig {
-                kind: TextureKind::Perlin(256),
+                kind: TextureKind::Perlin(256, 4),
             }),
         }),
     }));
