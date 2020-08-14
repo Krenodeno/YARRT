@@ -49,6 +49,20 @@ impl Perlin {
         trilinear_interpolation(u, v, w, &c)
     }
 
+    pub fn turbulence(&self, point: &Vec3, octave_count: usize) -> f64 {
+        let mut acc = 0.0;
+        let mut multiplicator = 1.0;
+        let mut weight = 1.0;
+
+        for _i in 0..octave_count {
+            acc += weight * self.noise(&(point * multiplicator));
+            weight *= 0.5;
+            multiplicator *= 2.0;
+        }
+
+        acc.abs()
+    }
+
     fn generate_permutations(capacity: usize, point_count: usize) -> Vec<usize> {
         let mut values = Vec::with_capacity(capacity);
         for i in 0..point_count {
