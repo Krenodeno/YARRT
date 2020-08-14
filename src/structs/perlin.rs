@@ -1,9 +1,9 @@
-use super::Vec3;
+use super::{dot, unit_vector, Vec3};
 use rand::Rng;
 
 pub struct Perlin {
     point_count: usize,
-    random_floats: Vec<f64>,
+    random_vectors: Vec<Vec3>,
     perm_x: Vec<usize>,
     perm_y: Vec<usize>,
     perm_z: Vec<usize>,
@@ -11,14 +11,14 @@ pub struct Perlin {
 
 impl Perlin {
     pub fn new(point_count: usize) -> Perlin {
-        let mut ranfloat = Vec::with_capacity(point_count);
+        let mut ranvecs = Vec::with_capacity(point_count);
         for _i in 0..point_count {
-            ranfloat.push(rand::thread_rng().gen());
+            ranvecs.push(unit_vector(Vec3::random_range(-1.0, 1.0)));
         }
 
         Perlin {
             point_count,
-            random_floats: ranfloat,
+            random_vectors: ranvecs,
             perm_x: Perlin::generate_permutations(point_count, point_count),
             perm_y: Perlin::generate_permutations(point_count, point_count),
             perm_z: Perlin::generate_permutations(point_count, point_count),
@@ -34,16 +34,11 @@ impl Perlin {
         let v = point.y - j;
         let w = point.z - k;
 
-        // Smooth
-        let u = u * u * (3.0 - 2.0 * u);
-        let v = v * v * (3.0 - 2.0 * v);
-        let w = w * w * (3.0 - 2.0 * w);
-
-        let mut c = [[[0.0; 2]; 2]; 2];
+        let mut c = [[[Vec3::new(0.0, 0.0, 0.0); 2]; 2]; 2];
         for di in 0..2 {
             for dj in 0..2 {
                 for dk in 0..2 {
-                    c[di][dj][dk] = self.random_floats[self.perm_x
+                    c[di][dj][dk] = self.random_vectors[self.perm_x
                         [((i as isize + di as isize) & 255) as usize]
                         ^ self.perm_y[((j as isize + dj as isize) & 255) as usize]
                         ^ self.perm_z[((k as isize + dk as isize) & 255) as usize]];
@@ -72,7 +67,12 @@ impl Perlin {
     }
 }
 
-pub fn trilinear_interpolation(u: f64, v: f64, w: f64, c: &[[[f64; 2]; 2]; 2]) -> f64 {
+fn trilinear_interpolation(u: f64, v: f64, w: f64, c: &[[[Vec3; 2]; 2]; 2]) -> f64 {
+    // Smooth
+    let uu = u * u * (3.0 - 2.0 * u);
+    let vv = v * v * (3.0 - 2.0 * v);
+    let ww = w * w * (3.0 - 2.0 * w);
+
     let mut acc = 0.0;
     for i in 0..2 {
         for j in 0..2 {
@@ -80,10 +80,11 @@ pub fn trilinear_interpolation(u: f64, v: f64, w: f64, c: &[[[f64; 2]; 2]; 2]) -
                 let i_f = i as f64;
                 let j_f = j as f64;
                 let k_f = k as f64;
-                acc += (i_f * u + (1.0 - i_f) * (1.0 - u))
-                    * (j_f * v + (1.0 - j_f) * (1.0 - v))
-                    * (k_f * w + (1.0 - k_f) * (1.0 - w))
-                    * c[i][j][k];
+                let weight = Vec3::new(u - i_f, v - j_f, w - k_f);
+                acc += (i_f * uu + (1.0 - i_f) * (1.0 - uu))
+                    * (j_f * vv + (1.0 - j_f) * (1.0 - vv))
+                    * (k_f * ww + (1.0 - k_f) * (1.0 - ww))
+                    * dot(c[i][j][k], weight);
             }
         }
     }
