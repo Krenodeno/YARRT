@@ -34,6 +34,11 @@ impl Perlin {
         let v = point.y - j;
         let w = point.z - k;
 
+        // Smooth
+        let u = u * u * (3.0 - 2.0 * u);
+        let v = v * v * (3.0 - 2.0 * v);
+        let w = w * w * (3.0 - 2.0 * w);
+
         let mut c = [[[0.0; 2]; 2]; 2];
         for di in 0..2 {
             for dj in 0..2 {
