@@ -104,6 +104,8 @@ pub struct PerlinTexture {
 
 impl Texture for PerlinTexture {
     fn value(&self, _u: f64, _v: f64, p: &Vec3) -> Vec3 {
-        Vec3::new(1.0, 1.0, 1.0) * self.noise.turbulence(&(self.scale * p), 7)
+        Vec3::new(1.0, 1.0, 1.0)
+            * 0.5
+            * (1.0 + (self.scale * p.z + 10.0 * self.noise.turbulence(p, 7)).sin())
     }
 }
