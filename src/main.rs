@@ -171,6 +171,26 @@ fn two_perlin_spheres() -> HitableList {
     world
 }
 
+fn earth() -> HitableList {
+    let earth_texture = Arc::new(ImageTexture::new(std::path::Path::new(
+        "assets/images/earthmap.jpg",
+    )));
+    let earth_surface = Arc::new(Lambertian {
+        albedo: earth_texture,
+    });
+    let globe = Arc::new(Sphere {
+        center: Vec3::default(),
+        radius: 2.0,
+        material: earth_surface,
+    });
+
+    let mut world = HitableList::new();
+
+    world.push(globe);
+
+    world
+}
+
 /// Compute the color of the current ray
 /// in the world of hitables.
 /// This function run recursively until maximum number of recursions
@@ -292,7 +312,7 @@ fn main() {
     let sample_per_pixel: u32 = 100;
 
     // Create a scene
-    let scene = 2;
+    let scene = 3;
     let (world, lookfrom, lookat, vfov, aperture) = match scene {
         0 => (
             random_scene(),
@@ -308,8 +328,15 @@ fn main() {
             20.0,
             0.0,
         ),
-        2 | _ => (
+        2 => (
             two_perlin_spheres(),
+            Vec3::new(13.0, 2.0, 3.0),
+            Vec3::default(),
+            20.0,
+            0.0,
+        ),
+        3 | _ => (
+            earth(),
             Vec3::new(13.0, 2.0, 3.0),
             Vec3::default(),
             20.0,

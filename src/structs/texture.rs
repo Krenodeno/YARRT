@@ -1,5 +1,7 @@
 use super::{Color, Perlin, Resource, ResourceConfig, ResourceManager, Vec3};
 
+use image::GenericImageView;
+
 use std::hash::Hash;
 use std::path::Path;
 use std::sync::Arc;
@@ -44,6 +46,7 @@ impl<'a> ResourceConfig for TextureConfig<'a> {
                 let even_texture = res_mgr.get_resource(even);
                 Arc::new(CheckerTexture::new(odd_texture, even_texture))
             }
+            TextureKind::FromFile(p) => Arc::new(ImageTexture::new(p)),
             TextureKind::Perlin(n, s) => Arc::new(PerlinTexture {
                 noise: Perlin::new(n),
                 scale: s as f64,
@@ -92,6 +95,64 @@ impl Texture for CheckerTexture {
         } else {
             self.even.value(u, v, &p)
         }
+    }
+}
+
+// Image Texture
+
+pub struct ImageTexture {
+    pixels: Vec<u8>,
+    width: u32,
+    height: u32,
+    channel_count: u32,
+}
+
+impl ImageTexture {
+    pub fn new(path: &Path) -> ImageTexture {
+        let img = image::open(path);
+        match img {
+            Ok(i) => ImageTexture {
+                pixels: i.to_rgba().into_vec(),
+                width: i.width(),
+                height: i.height(),
+                channel_count: 4,
+            },
+            Err(_e) => ImageTexture {
+                pixels: Vec::new(),
+                width: 0,
+                height: 0,
+                channel_count: 0,
+            },
+        }
+    }
+}
+
+impl Texture for ImageTexture {
+    fn value(&self, u: f64, v: f64, _p: &Vec3) -> Vec3 {
+        // If we have no texture data, then return solid cyan as a debugging aid.
+        if self.pixels.is_empty() {
+            return Vec3::new(0.0, 1.0, 1.0);
+        }
+
+        // clamp
+        let u = u.min(1.0).max(0.0);
+        // flip
+        let v = 1.0 - v.min(1.0).max(0.0);
+
+        let i = self.width * u as u32;
+        let j = self.height * v as u32;
+
+        let i = if i >= self.width { self.width - 1 } else { i };
+        let j = if j >= self.height { self.height - 1 } else { j };
+
+        let color_scale = 1.0 / 255.0;
+        let pixel = &[self.pixels[(j * self.channel_count + i * self.channel_count) as usize]; 4];
+
+        Vec3::new(
+            pixel[0] as f64 * color_scale,
+            pixel[1] as f64 * color_scale,
+            pixel[2] as f64 * color_scale,
+        )
     }
 }
 

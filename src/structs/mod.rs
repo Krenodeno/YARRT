@@ -5,7 +5,7 @@ pub use ray::*;
 mod vec3;
 pub use vec3::*;
 mod image;
-pub use image::*;
+pub use self::image::*;
 mod perlin;
 pub use perlin::Perlin;
 mod resources_manager;
