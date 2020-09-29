@@ -139,14 +139,15 @@ impl Texture for ImageTexture {
         // flip
         let v = 1.0 - v.min(1.0).max(0.0);
 
-        let i = self.width * u as u32;
-        let j = self.height * v as u32;
+        let i = (self.width as f64 * u) as u32;
+        let j = (self.height as f64 * v) as u32;
 
         let i = if i >= self.width { self.width - 1 } else { i };
         let j = if j >= self.height { self.height - 1 } else { j };
 
         let color_scale = 1.0 / 255.0;
-        let pixel = &[self.pixels[(j * self.channel_count + i * self.channel_count) as usize]; 4];
+        let bytes_per_scanline = self.channel_count * self.width;
+        let pixel = &[self.pixels[(j * bytes_per_scanline + i * self.channel_count) as usize]; 4];
 
         Vec3::new(
             pixel[0] as f64 * color_scale,
