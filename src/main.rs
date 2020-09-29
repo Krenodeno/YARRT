@@ -311,6 +311,12 @@ fn main() {
     let image_height: u32 = 225;
     let sample_per_pixel: u32 = 100;
 
+    let (image_width, image_height, sample_per_pixel) = if cfg!(debug_assertions) {
+        (image_width / 8, image_height / 8, sample_per_pixel / 10)
+    } else {
+        (image_width, image_height, sample_per_pixel)
+    };
+
     // Create a scene
     let scene = 3;
     let (world, lookfrom, lookat, vfov, aperture) = match scene {
