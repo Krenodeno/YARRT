@@ -8,6 +8,7 @@ use hitables::*;
 use materials::*;
 
 use rand::Rng;
+use std::ops::Div;
 use std::sync::mpsc;
 use std::sync::Arc;
 use std::thread;
@@ -306,16 +307,19 @@ fn render(
     Image::from(image_width, image_height, PixelFormat::RGBU8, &buffer)
 }
 
-fn main() {
-    let image_width: u32 = 400;
-    let image_height: u32 = 225;
-    let sample_per_pixel: u32 = 100;
-
-    let (image_width, image_height, sample_per_pixel) = if cfg!(debug_assertions) {
-        (image_width / 8, image_height / 8, sample_per_pixel / 10)
+/// divise a number by a divisor when debug is the active target
+fn debug_limiter<T: Div<Output = T> + Copy>(number: T, divisor: T) -> T {
+    if cfg!(debug_assertions) {
+        number / divisor
     } else {
-        (image_width, image_height, sample_per_pixel)
-    };
+        number
+    }
+}
+
+fn main() {
+    let image_width: u32 = debug_limiter(400, 8);
+    let image_height: u32 = debug_limiter(225, 8);
+    let sample_per_pixel: u32 = debug_limiter(100, 10);
 
     // Create a scene
     let scene = 3;
