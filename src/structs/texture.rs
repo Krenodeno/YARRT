@@ -125,6 +125,19 @@ impl ImageTexture {
             },
         }
     }
+
+    fn get_pixel(&self, row: u32, col: u32) -> Vec3 {
+        let color_scale = 1.0 / 255.0;
+        let bytes_per_scanline = self.channel_count * self.width;
+        let pixel_index = (row * bytes_per_scanline + col * self.channel_count) as usize;
+        let pixel = &self.pixels[pixel_index..pixel_index + 4];
+
+        Vec3::new(
+            pixel[0] as f64 * color_scale,
+            pixel[1] as f64 * color_scale,
+            pixel[2] as f64 * color_scale,
+        )
+    }
 }
 
 impl Texture for ImageTexture {
@@ -134,26 +147,19 @@ impl Texture for ImageTexture {
             return Vec3::new(0.0, 1.0, 1.0);
         }
 
-        // clamp
-        let u = u.min(1.0).max(0.0);
-        // flip
-        let v = 1.0 - v.min(1.0).max(0.0);
+        let width = self.width as f64;
+        let height = self.height as f64;
 
-        let i = (self.width as f64 * u) as u32;
-        let j = (self.height as f64 * v) as u32;
+        let row = u * (height - 1.0);
+        let col = v * (width - 1.0);
 
-        let i = if i >= self.width { self.width - 1 } else { i };
-        let j = if j >= self.height { self.height - 1 } else { j };
+        let row = f64::max(0.0, row);
+        let col = f64::max(0.0, col);
 
-        let color_scale = 1.0 / 255.0;
-        let bytes_per_scanline = self.channel_count * self.width;
-        let pixel = &[self.pixels[(j * bytes_per_scanline + i * self.channel_count) as usize]; 4];
+        let row = f64::min(height - 1.0, row);
+        let col = f64::min(width - 1.0, col);
 
-        Vec3::new(
-            pixel[0] as f64 * color_scale,
-            pixel[1] as f64 * color_scale,
-            pixel[2] as f64 * color_scale,
-        )
+        self.get_pixel(row as u32, col as u32)
     }
 }
 
