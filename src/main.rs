@@ -173,9 +173,10 @@ fn two_perlin_spheres() -> HitableList {
 }
 
 fn earth() -> HitableList {
-    let earth_texture = Arc::new(ImageTexture::new(std::path::Path::new(
-        "assets/images/earthmap.jpg",
-    )));
+    let mut texture_manager = ResourceManager::new();
+    let earth_texture = texture_manager.get_resource(&TextureConfig {
+        kind: TextureKind::FromFile(std::path::Path::new("assets/images/earthmap.jpg")),
+    });
     let earth_surface = Arc::new(Lambertian {
         albedo: earth_texture,
     });
