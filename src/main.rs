@@ -317,9 +317,9 @@ fn debug_limiter<T: Div<Output = T> + Copy>(number: T, divisor: T) -> T {
 }
 
 fn main() {
-    let image_width: u32 = debug_limiter(400, 8);
-    let image_height: u32 = debug_limiter(225, 8);
-    let sample_per_pixel: u32 = debug_limiter(100, 10);
+    let image_width: u32 = debug_limiter(400, 4);
+    let image_height: u32 = debug_limiter(225, 4);
+    let sample_per_pixel: u32 = debug_limiter(100, 50);
 
     // Create a scene
     let scene = 3;
