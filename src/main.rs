@@ -234,7 +234,7 @@ fn render(
     camera: Arc<dyn Camera>,
 ) -> Image {
     let max_depth: u32 = 10;
-    let thread_count = 4;
+    let thread_count = debug_limiter(4, 4);
 
     let mut handles = vec![];
     let lines: Arc<Vec<u32>> = Arc::new((0..image_height).rev().collect());
