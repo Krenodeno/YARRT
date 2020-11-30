@@ -22,7 +22,7 @@ impl BVHNode {
     /// Use a randomly choosen axis to cut
     /// For other construction methods, see SAH ...
     fn from(objects: &[Arc<dyn Hitable>], time0: f64, time1: f64) -> BVHNode {
-        let axis = thread_rng().gen_range(0, 2);
+        let axis = thread_rng().gen_range(0, 2); // TODO pre-gen for better performances
         let comparator = match axis {
             0 => box_x_compare,
             1 => box_y_compare,

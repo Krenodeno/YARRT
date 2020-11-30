@@ -73,7 +73,7 @@ impl Camera for PinholeCamera {
         Ray::new(
             self.origin,
             self.lower_left_corner + u * self.horizontal + v * self.vertical - self.origin,
-            rand::thread_rng().gen_range(self.time0, self.time1),
+            rand::thread_rng().gen_range(self.time0, self.time1), // TODO pre-gen for better performances
         )
     }
 }

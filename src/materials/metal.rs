@@ -23,7 +23,7 @@ impl Material for Metal {
         let reflected: Vec3 = reflect(&unit_vector(ray.direction()), &rec.normal);
         let scattered = Ray::new(
             rec.p,
-            reflected + self.fuzziness * random_in_unit_sphere(),
+            reflected + self.fuzziness * random_in_unit_sphere(), // TODO pre-gen for better performances
             ray.time(),
         );
         let attenuation = self.albedo;

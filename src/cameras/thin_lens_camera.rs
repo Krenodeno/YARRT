@@ -63,7 +63,7 @@ impl Camera for ThinLensCamera {
         Ray::new(
             self.origin + offset,
             self.lower_left_corner + s * self.horizontal + t * self.vertical - self.origin - offset,
-            rand::thread_rng().gen_range(self.time0, self.time1),
+            rand::thread_rng().gen_range(self.time0, self.time1), // TODO pre-gen for better performances
         )
     }
 }
