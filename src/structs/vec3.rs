@@ -12,6 +12,7 @@ use std::ops::SubAssign;
 use std::ops::Index;
 use std::ops::IndexMut;
 
+use rand::distributions::{Distribution, Standard};
 use rand::Rng;
 use std::cmp::PartialEq;
 use std::cmp::PartialOrd;
@@ -75,6 +76,21 @@ impl Vec3 {
         self.z *= k;
     }
 }
+
+// Random vector
+
+impl Distribution<Vec3> for Standard {
+    fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Vec3 {
+        let (rand_x, rand_y, rand_z) = rng.gen();
+        Vec3 {
+            x: rand_x,
+            y: rand_y,
+            z: rand_z,
+        }
+    }
+}
+
+// Algebric functions on vec3
 
 pub fn dot(v1: Vec3, v2: Vec3) -> f64 {
     v1.x * v2.x + v1.y * v2.y + v1.z * v2.z

@@ -17,6 +17,7 @@ use std::time::Instant;
 /// Generate a random scene with 484 little random spheres,
 /// 3 bigger spheres in center, and a spheric ground.
 fn random_scene() -> HitableList {
+    let mut rng = rand::thread_rng();
     let mut world = HitableList::new();
 
     let mut texture_manager = ResourceManager::new();
@@ -39,16 +40,16 @@ fn random_scene() -> HitableList {
 
     for a in -11..11 {
         for b in -11..11 {
-            let choose_mat = rand::thread_rng().gen::<f64>();
+            let choose_mat = rng.gen::<f64>();
             let center = Vec3::new(
-                f64::from(a) + 0.9 * rand::thread_rng().gen::<f64>(),
+                f64::from(a) + 0.9 * rng.gen::<f64>(),
                 0.2,
-                f64::from(b) + 0.9 * rand::thread_rng().gen::<f64>(),
+                f64::from(b) + 0.9 * rng.gen::<f64>(),
             );
             if (center - Vec3::new(4.0, 0.2, 0.0)).length() > 0.9 {
                 if choose_mat < 0.8 {
                     // Diffuse
-                    let albedo = Vec3::random() * Vec3::random();
+                    let albedo = rng.gen::<Vec3>() * rng.gen::<Vec3>();
                     let texture = texture_manager.get_resource(&TextureConfig {
                         kind: TextureKind::Constant(Color::new(
                             (albedo.x * 255.99) as u8,
@@ -58,8 +59,7 @@ fn random_scene() -> HitableList {
                     });
                     world.push(Arc::new(MovingSphere {
                         center0: center,
-                        center1: center
-                            + Vec3::new(0.0, 0.5 * rand::thread_rng().gen::<f64>(), 0.0),
+                        center1: center + Vec3::new(0.0, 0.5 * rng.gen::<f64>(), 0.0),
                         time0: 0.0,
                         time1: 1.0,
                         radius: 0.2,
@@ -68,7 +68,7 @@ fn random_scene() -> HitableList {
                 } else if choose_mat < 0.95 {
                     // Metal
                     let albedo = Vec3::random_range(0.5, 1.0);
-                    let fuzz = rand::thread_rng().gen_range(0.0, 0.5);
+                    let fuzz = rng.gen_range(0.0, 0.5);
                     world.push(Arc::new(Sphere {
                         center,
                         radius: 0.2,
