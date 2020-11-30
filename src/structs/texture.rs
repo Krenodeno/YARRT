@@ -128,8 +128,8 @@ impl ImageTexture {
 
     fn get_pixel(&self, row: u32, col: u32) -> Vec3 {
         let color_scale = 1.0 / 255.0;
-        let bytes_per_scanline = self.channel_count * self.width;
-        let pixel_index = (row * bytes_per_scanline + col * self.channel_count) as usize;
+        let values_per_row = self.channel_count * self.width;
+        let pixel_index = (col * values_per_row + row * self.channel_count) as usize;
         let pixel = &self.pixels[pixel_index..pixel_index + 4];
 
         Vec3::new(
@@ -150,14 +150,14 @@ impl Texture for ImageTexture {
         let width = self.width as f64;
         let height = self.height as f64;
 
-        let row = u * (height - 1.0);
-        let col = v * (width - 1.0);
+        let row = u * (width - 1.0);
+        let col = v * (height - 1.0);
 
         let row = f64::max(0.0, row);
         let col = f64::max(0.0, col);
 
-        let row = f64::min(height - 1.0, row);
-        let col = f64::min(width - 1.0, col);
+        let row = f64::min(width - 1.0, row);
+        let col = f64::min(height - 1.0, col);
 
         self.get_pixel(row as u32, col as u32)
     }
