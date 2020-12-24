@@ -25,6 +25,14 @@ impl Sphere {
     }
 }
 
+fn compute_hit(ray: &Ray, temp: f64, sphere: &Sphere) -> Option<HitRecord> {
+    let p = ray.point_at(temp);
+    let outward_normal = (p - sphere.center) / sphere.radius;
+    let (u, v) = Sphere::get_sphere_uv(&outward_normal);
+    let rec = HitRecord::new(temp, u, v, p, ray, outward_normal, sphere.material.clone());
+    Some(rec)
+}
+
 impl Hitable for Sphere {
     fn hit(&self, ray: &Ray, t_min: f64, t_max: f64) -> Option<HitRecord> {
         let oc = ray.origin() - self.center;
@@ -37,19 +45,11 @@ impl Hitable for Sphere {
             let root = discriminant.sqrt();
             let temp = (-half_b - root) / a;
             if temp < t_max && temp > t_min {
-                let p = ray.point_at(temp);
-                let outward_normal = (p - self.center) / self.radius;
-                let (u, v) = Sphere::get_sphere_uv(&((p - self.center) / self.radius));
-                let rec = HitRecord::new(temp, u, v, p, ray, outward_normal, self.material.clone());
-                return Some(rec);
+                return compute_hit(ray, temp, self);
             }
             let temp = (-half_b + root) / a;
             if temp < t_max && temp > t_min {
-                let p = ray.point_at(temp);
-                let outward_normal = (p - self.center) / self.radius;
-                let (u, v) = Sphere::get_sphere_uv(&((p - self.center) / self.radius));
-                let rec = HitRecord::new(temp, u, v, p, ray, outward_normal, self.material.clone());
-                return Some(rec);
+                return compute_hit(ray, temp, self);
             }
         }
         None
