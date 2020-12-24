@@ -107,7 +107,7 @@ impl Hitable for BVHNode {
         // or left node hit if left node is hit but right node isn't
         self.left
             .hit(ray, t_min, t_max)
-            .and_then(|h| self.right.hit(ray, t_min, h.t).or_else(|| Some(h)))
+            .and_then(|h| self.right.hit(ray, t_min, h.t).or(Some(h)))
             .or_else(|| self.right.hit(ray, t_min, t_max))
     }
 

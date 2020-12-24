@@ -68,18 +68,18 @@ fn encode_ppm(image: &Image) -> String {
     let mut img = String::new();
     img.push_str("P3\n");
     img.push_str(&image.width.to_string());
-    img.push_str(" ");
+    img.push(' ');
     img.push_str(&image.height.to_string());
     img.push_str("\n255\n");
 
     let mut encode_one_pixel = match image.format {
         PixelFormat::RGBU8 => |r: &f64, g: &f64, b: &f64| {
             img.push_str(&((r * 255.99) as u32).to_string());
-            img.push_str(" ");
+            img.push(' ');
             img.push_str(&((g * 255.99) as u32).to_string());
-            img.push_str(" ");
+            img.push(' ');
             img.push_str(&((b * 255.99) as u32).to_string());
-            img.push_str("\n");
+            img.push('\n');
         },
     };
 
