@@ -9,15 +9,21 @@ pub use aabb::*;
 mod bvh;
 pub use bvh::*;
 
+use crate::materials::Material;
+
 use std::sync::Arc;
 
 pub struct HitableList {
     list: Vec<Arc<dyn Hitable>>,
+    pub background: Arc<dyn Material>,
 }
 
 impl HitableList {
-    pub fn new() -> HitableList {
-        HitableList { list: Vec::new() }
+    pub fn new(background: Arc<dyn Material>) -> HitableList {
+        HitableList {
+            list: Vec::new(),
+            background,
+        }
     }
 
     pub fn push(&mut self, elem: Arc<dyn Hitable>) {

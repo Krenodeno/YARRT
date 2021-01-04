@@ -14,11 +14,37 @@ use std::sync::Arc;
 use std::thread;
 use std::time::Instant;
 
+struct Sky {
+    pub color1: Vec3,
+    pub color2: Vec3,
+}
+
+impl Material for Sky {
+    fn scatter(&self, _ray: &Ray, _rec: &HitRecord) -> Option<(Vec3, Ray)> {
+        None
+    }
+
+    fn emit(&self, _u: f64, _v: f64, direction: &Vec3) -> Vec3 {
+        let unit_direction = unit_vector(*direction);
+        let t: f64 = 0.5 * (unit_direction.y + 1.0);
+        (1.0 - t) * self.color1 + t * self.color2
+    }
+}
+
+fn make_sky_material(color1: &Vec3, color2: &Vec3) -> Arc<dyn Material> {
+    Arc::new(Sky {
+        color1: color1.clone(),
+        color2: color2.clone(),
+    })
+}
+
 /// Generate a random scene with 484 little random spheres,
 /// 3 bigger spheres in center, and a spheric ground.
-fn random_scene() -> HitableList {
+fn random_scene(background: &Vec3) -> HitableList {
     let mut rng = rand::thread_rng();
-    let mut world = HitableList::new();
+    let background = make_sky_material(&Vec3::new(1.0, 1.0, 1.0), background);
+
+    let mut world = HitableList::new(background);
 
     let mut texture_manager = ResourceManager::new();
 
@@ -109,8 +135,10 @@ fn random_scene() -> HitableList {
     world
 }
 
-fn two_spheres() -> HitableList {
-    let mut world = HitableList::new();
+fn two_spheres(background: &Vec3) -> HitableList {
+    let background = make_sky_material(&Vec3::new(1.0, 1.0, 1.0), background);
+
+    let mut world = HitableList::new(background);
 
     let mut texture_manager = ResourceManager::new();
 
@@ -144,8 +172,10 @@ fn two_spheres() -> HitableList {
     world
 }
 
-fn two_perlin_spheres() -> HitableList {
-    let mut world = HitableList::new();
+fn two_perlin_spheres(background: &Vec3) -> HitableList {
+    let background = make_sky_material(&Vec3::new(1.0, 1.0, 1.0), background);
+
+    let mut world = HitableList::new(background);
 
     let mut texture_manager = ResourceManager::new();
 
@@ -172,7 +202,7 @@ fn two_perlin_spheres() -> HitableList {
     world
 }
 
-fn earth() -> HitableList {
+fn earth(background: &Vec3) -> HitableList {
     let mut texture_manager = ResourceManager::new();
     let earth_texture = texture_manager.get_resource(&TextureConfig {
         kind: TextureKind::FromFile(std::path::Path::new("assets/images/earthmap.jpg")),
@@ -186,7 +216,9 @@ fn earth() -> HitableList {
         material: earth_surface,
     });
 
-    let mut world = HitableList::new();
+    let background = make_sky_material(&Vec3::new(1.0, 1.0, 1.0), background);
+
+    let mut world = HitableList::new(background);
 
     world.push(globe);
 
@@ -197,23 +229,24 @@ fn earth() -> HitableList {
 /// in the world of hitables.
 /// This function run recursively until maximum number of recursions
 /// (depth parameter) is reached or no hitable is hit.
-fn color(ray: &Ray, world: &dyn Hitable, depth: u32) -> Vec3 {
+fn color(ray: &Ray, background: &Arc<dyn Material>, world: &dyn Hitable, depth: u32) -> Vec3 {
+    if depth == 0 {
+        return Vec3::default();
+    }
+
     let record = world.hit(&ray, 0.001, std::f64::MAX);
     match record {
         Some(rec) => {
             let res = rec.material.scatter(&ray, &rec);
+            let emitted = rec.material.emit(rec.u, rec.v, &rec.p);
             if let Some((attenuation, scattered)) = res {
-                if depth != 0 {
-                    return attenuation * color(&scattered, world, depth - 1);
-                }
+                return emitted + attenuation * color(&scattered, background, world, depth - 1);
             }
-            Vec3::default()
+            emitted
         }
         None => {
-            // sky color
-            let unit_direction = unit_vector(ray.direction());
-            let t: f64 = 0.5 * (unit_direction.y + 1.0);
-            (1.0 - t) * Vec3::new(1.0, 1.0, 1.0) + t * Vec3::new(0.5, 0.7, 1.0)
+            let emitted = background.emit(0.0, 0.0, &ray.direction());
+            emitted
         }
     }
 }
@@ -235,7 +268,7 @@ fn render(
     camera: Arc<dyn Camera>,
 ) -> Image {
     let max_depth: u32 = 10;
-    let thread_count = debug_limiter(4, 4);
+    let thread_count = debug_limiter(16, 16);
 
     let mut handles = vec![];
     let lines: Arc<Vec<u32>> = Arc::new((0..image_height).rev().collect());
@@ -260,6 +293,7 @@ fn render(
         let lines = lines.clone();
         let tx = tx.clone();
         let bvh = bvh.clone();
+        let background = world.background.clone();
 
         handles.push(thread::spawn(move || {
             let mut rng = rand::thread_rng();
@@ -274,7 +308,7 @@ fn render(
                         let r = camera.get_ray(u, v);
 
                         let _p = r.point_at(2.0);
-                        col += color(&r, &bvh, max_depth);
+                        col += color(&r, &background, &bvh, max_depth);
                     }
 
                     col /= f64::from(sample_per_pixel);
@@ -318,36 +352,43 @@ fn debug_limiter<T: Div<Output = T> + Copy>(number: T, divisor: T) -> T {
 }
 
 fn main() {
-    let image_width: u32 = debug_limiter(400, 4);
-    let image_height: u32 = debug_limiter(225, 4);
+    let image_width: u32 = debug_limiter(1920, 4);
+    let image_height: u32 = debug_limiter(1080, 4);
     let sample_per_pixel: u32 = debug_limiter(100, 50);
 
     // Create a scene
-    let scene = 3;
+    let scene = 4;
     let (world, lookfrom, lookat, vfov, aperture) = match scene {
         0 => (
-            random_scene(),
+            random_scene(&Vec3::new(0.5, 0.7, 1.0)),
             Vec3::new(13.0, 2.0, 3.0),
             Vec3::default(),
             20.0,
             0.1,
         ),
         1 => (
-            two_spheres(),
+            two_spheres(&Vec3::new(0.5, 0.7, 1.0)),
             Vec3::new(13.0, 2.0, 3.0),
             Vec3::default(),
             20.0,
             0.0,
         ),
         2 => (
-            two_perlin_spheres(),
+            two_perlin_spheres(&Vec3::new(0.5, 0.7, 1.0)),
             Vec3::new(13.0, 2.0, 3.0),
             Vec3::default(),
             20.0,
             0.0,
         ),
-        3 | _ => (
-            earth(),
+        3 => (
+            earth(&Vec3::new(0.5, 0.7, 1.0)),
+            Vec3::new(13.0, 2.0, 3.0),
+            Vec3::default(),
+            20.0,
+            0.0,
+        ),
+        4 | _ => (
+            earth(&Vec3::new(0.0, 0.0, 0.0)),
             Vec3::new(13.0, 2.0, 3.0),
             Vec3::default(),
             20.0,
