@@ -4,6 +4,8 @@ mod sphere;
 pub use sphere::*;
 mod moving_sphere;
 pub use moving_sphere::*;
+mod xy_rect;
+pub use xy_rect::*;
 mod aabb;
 pub use aabb::*;
 mod bvh;
