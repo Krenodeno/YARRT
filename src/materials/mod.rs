@@ -6,6 +6,8 @@ mod metal;
 pub use metal::Metal;
 mod dielectric;
 pub use dielectric::Dielectric;
+mod emissive;
+pub use emissive::Emissive;
 
 use rand::Rng;
 use std::f64::consts::PI;
