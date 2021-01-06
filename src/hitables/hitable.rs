@@ -21,24 +21,30 @@ impl HitRecord {
         p: Vec3,
         ray: &Ray,
         outward_normal: Vec3,
-        material: Arc<dyn Material>,
+        material: Arc<dyn Material>, // TODO Maybe use a weak pointer here
     ) -> HitRecord {
-        let face = dot(ray.direction(), outward_normal) < 0.0;
-        let normal = if face {
-            outward_normal
-        } else {
-            -outward_normal
-        };
+        let (front_face, normal) = compute_face_normal(ray, &outward_normal);
         HitRecord {
             t,
             u,
             v,
             p,
-            front_face: face,
+            front_face,
             normal,
             material,
         }
     }
+}
+
+/// compute and return front_face and normal
+fn compute_face_normal(ray: &Ray, outward_normal: &Vec3) -> (bool, Vec3) {
+    let front_face = dot(ray.direction(), *outward_normal) < 0.0;
+    let normal = if front_face {
+        outward_normal.clone()
+    } else {
+        -outward_normal
+    };
+    (front_face, normal)
 }
 
 pub trait Hitable: Send + Sync {
