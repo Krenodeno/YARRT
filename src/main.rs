@@ -225,6 +225,58 @@ fn earth(background: &Vec3) -> HitableList {
     world
 }
 
+struct BlackMaterial;
+
+impl Material for BlackMaterial {
+    fn scatter(&self, _ray: &Ray, _rec: &HitRecord) -> Option<(Vec3, Ray)> {
+        None
+    }
+}
+
+fn simple_light() -> HitableList {
+    let background = Arc::new(BlackMaterial {});
+    let mut world = HitableList::new(background);
+
+    let mut texture_manager = ResourceManager::new();
+    let perlin_texture = texture_manager.get_resource(&TextureConfig {
+        kind: TextureKind::Perlin(256, 4),
+    });
+    world.push(Arc::new(Sphere {
+        center: Vec3::new(0.0, -1000.0, 0.0),
+        radius: 1000.0,
+        material: Arc::new(Lambertian {
+            albedo: perlin_texture.clone(),
+        }),
+    }));
+    world.push(Arc::new(Sphere {
+        center: Vec3::new(0.0, 2.0, 0.0),
+        radius: 2.0,
+        material: Arc::new(Lambertian {
+            albedo: perlin_texture.clone(),
+        }),
+    }));
+
+    let light = Arc::new(Emissive {
+        emit: texture_manager.get_resource(&TextureConfig {
+            kind: TextureKind::Constant(Color {
+                r: 255,
+                g: 255,
+                b: 255,
+            }),
+        }),
+    });
+    world.push(Arc::new(XYRect {
+        x0: 3.0,
+        x1: 5.0,
+        y0: 1.0,
+        y1: 3.0,
+        k: -2.0,
+        material: light,
+    }));
+
+    world
+}
+
 /// Compute the color of the current ray
 /// in the world of hitables.
 /// This function run recursively until maximum number of recursions
@@ -388,9 +440,9 @@ fn main() {
             0.0,
         ),
         4 | _ => (
-            earth(&Vec3::new(0.0, 0.0, 0.0)),
-            Vec3::new(13.0, 2.0, 3.0),
-            Vec3::default(),
+            simple_light(),
+            Vec3::new(26.0, 3.0, 6.0),
+            Vec3::new(0.0, 2.0, 0.0),
             20.0,
             0.0,
         ),
