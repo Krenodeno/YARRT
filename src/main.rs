@@ -278,6 +278,102 @@ fn simple_light() -> HitableList {
     world
 }
 
+fn cornell_box() -> HitableList {
+    let background = Arc::new(BlackMaterial {});
+    let mut world = HitableList::new(background);
+    let mut texture_manager = ResourceManager::new();
+
+    let red = Arc::new(Lambertian {
+        albedo: texture_manager.get_resource(&TextureConfig {
+            kind: TextureKind::Constant(Color {
+                r: 166,
+                g: 13,
+                b: 13,
+            }),
+        }),
+    });
+    let white = Arc::new(Lambertian {
+        albedo: texture_manager.get_resource(&TextureConfig {
+            kind: TextureKind::Constant(Color {
+                r: 186,
+                g: 186,
+                b: 186,
+            }),
+        }),
+    });
+    let green = Arc::new(Lambertian {
+        albedo: texture_manager.get_resource(&TextureConfig {
+            kind: TextureKind::Constant(Color {
+                r: 31,
+                g: 115,
+                b: 38,
+            }),
+        }),
+    });
+    let light = Arc::new(Emissive {
+        emit: texture_manager.get_resource(&TextureConfig {
+            kind: TextureKind::Constant(Color {
+                r: 255,
+                g: 255,
+                b: 255,
+            }),
+        }),
+        multiplier: 15.0,
+    });
+
+    let box_size = 555.0;
+    world.push(Arc::new(YZRect {
+        material: green,
+        y0: 0.0,
+        y1: box_size,
+        z0: 0.0,
+        z1: box_size,
+        k: box_size,
+    }));
+    world.push(Arc::new(YZRect {
+        material: red,
+        y0: 0.0,
+        y1: box_size,
+        z0: 0.0,
+        z1: box_size,
+        k: 0.0,
+    }));
+    world.push(Arc::new(XZRect {
+        material: light,
+        x0: 213.0,
+        x1: 343.0,
+        z0: 227.0,
+        z1: 332.0,
+        k: 554.0,
+    }));
+    world.push(Arc::new(XZRect {
+        material: white.clone(),
+        x0: 0.0,
+        x1: box_size,
+        z0: 0.0,
+        z1: box_size,
+        k: 0.0,
+    }));
+    world.push(Arc::new(XZRect {
+        material: white.clone(),
+        x0: 0.0,
+        x1: box_size,
+        z0: 0.0,
+        z1: box_size,
+        k: box_size,
+    }));
+    world.push(Arc::new(XYRect {
+        material: white.clone(),
+        x0: 0.0,
+        x1: box_size,
+        y0: 0.0,
+        y1: box_size,
+        k: box_size,
+    }));
+
+    world
+}
+
 /// Compute the color of the current ray
 /// in the world of hitables.
 /// This function run recursively until maximum number of recursions
@@ -321,7 +417,7 @@ fn render(
     camera: Arc<dyn Camera>,
 ) -> Image {
     let max_depth: u32 = 10;
-    let thread_count = debug_limiter(16, 16);
+    let thread_count = debug_limiter(16, 1);
 
     let mut handles = vec![];
     let lines: Arc<Vec<u32>> = Arc::new((0..image_height).rev().collect());
@@ -407,10 +503,10 @@ fn debug_limiter<T: Div<Output = T> + Copy>(number: T, divisor: T) -> T {
 fn main() {
     let image_width: u32 = debug_limiter(1920, 4);
     let image_height: u32 = debug_limiter(1080, 4);
-    let sample_per_pixel: u32 = debug_limiter(100, 50);
+    let sample_per_pixel: u32 = debug_limiter(400, 2);
 
     // Create a scene
-    let scene = 4;
+    let scene = 5;
     let (world, lookfrom, lookat, vfov, aperture) = match scene {
         0 => (
             random_scene(&Vec3::new(0.5, 0.7, 1.0)),
@@ -440,11 +536,18 @@ fn main() {
             20.0,
             0.0,
         ),
-        4 | _ => (
+        4 => (
             simple_light(),
             Vec3::new(26.0, 3.0, 6.0),
             Vec3::new(0.0, 2.0, 0.0),
             20.0,
+            0.0,
+        ),
+        5 | _ => (
+            cornell_box(),
+            Vec3::new(278.0, 278.0, -800.0),
+            Vec3::new(278.0, 278.0, 0.0),
+            40.0,
             0.0,
         ),
     };
