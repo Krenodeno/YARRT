@@ -264,6 +264,7 @@ fn simple_light() -> HitableList {
                 b: 255,
             }),
         }),
+        multiplier: 4.0,
     });
     world.push(Arc::new(XYRect {
         x0: 3.0,

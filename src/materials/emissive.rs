@@ -7,6 +7,7 @@ use std::sync::Arc;
 
 pub struct Emissive {
     pub emit: Arc<dyn Texture>,
+    pub multiplier: f64,
 }
 
 impl Material for Emissive {
@@ -15,6 +16,6 @@ impl Material for Emissive {
     }
 
     fn emit(&self, u: f64, v: f64, p: &Vec3) -> Vec3 {
-        self.emit.value(u, v, p)
+        self.emit.value(u, v, p) * self.multiplier
     }
 }
