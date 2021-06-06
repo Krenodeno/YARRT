@@ -2,7 +2,6 @@ use super::{dot, unit_vector, Vec3};
 use rand::Rng;
 
 pub struct Perlin {
-    point_count: usize,
     random_vectors: Vec<Vec3>,
     perm_x: Vec<usize>,
     perm_y: Vec<usize>,
@@ -17,7 +16,6 @@ impl Perlin {
         }
 
         Perlin {
-            point_count,
             random_vectors: ranvecs,
             perm_x: Perlin::generate_permutations(point_count, point_count),
             perm_y: Perlin::generate_permutations(point_count, point_count),
